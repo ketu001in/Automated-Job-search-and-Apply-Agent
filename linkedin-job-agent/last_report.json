@@ -1,0 +1,133 @@
+{
+  "applied": [
+    {
+      "jobId": "4431202158",
+      "title": "Program Manager",
+      "company": "Pocket FM",
+      "score": 9,
+      "reason": "Title is a direct PM/PMO match",
+      "url": "https://www.linkedin.com/jobs/view/4431202158/",
+      "appliedAt": "2026-06-23T09:03:24.215Z"
+    },
+    {
+      "jobId": "4430884309",
+      "title": "Principal Technical Program manager",
+      "company": "Oracle",
+      "score": 9,
+      "reason": "Title is a direct PM/PMO match",
+      "url": "https://www.linkedin.com/jobs/view/4430884309/",
+      "appliedAt": "2026-06-23T09:03:38.653Z"
+    },
+    {
+      "jobId": "4431713297",
+      "title": "Program & Delivery manager",
+      "company": "Finkraft",
+      "score": 9,
+      "reason": "Title is a direct PM/PMO match",
+      "url": "https://www.linkedin.com/jobs/view/4431713297/",
+      "appliedAt": "2026-06-23T09:03:54.794Z"
+    },
+    {
+      "jobId": "4432085815",
+      "title": "Program Manager",
+      "company": "GreyLabs AI",
+      "score": 9,
+      "reason": "Title is a direct PM/PMO match",
+      "url": "https://www.linkedin.com/jobs/view/4432085815/",
+      "appliedAt": "2026-06-23T09:04:17.419Z"
+    },
+    {
+      "jobId": "4432211258",
+      "title": "Program Manager Mining",
+      "company": "Jobgether",
+      "score": 9,
+      "reason": "Title is a direct PM/PMO match",
+      "url": "https://www.linkedin.com/jobs/view/4432211258/",
+      "appliedAt": "2026-06-23T09:04:31.133Z"
+    },
+    {
+      "jobId": "4430855195",
+      "title": "Technical Program Manager",
+      "company": "Earnifi",
+      "score": 9,
+      "reason": "Title is a direct PM/PMO match",
+      "url": "https://www.linkedin.com/jobs/view/4430855195/",
+      "appliedAt": "2026-06-23T09:04:44.848Z"
+    },
+    {
+      "jobId": "4423107094",
+      "title": "Senior Project Manager",
+      "company": "Morpho Dimensions",
+      "score": 7,
+      "reason": "Related management role",
+      "url": "https://www.linkedin.com/jobs/view/4423107094/",
+      "appliedAt": "2026-06-23T09:05:10.309Z"
+    },
+    {
+      "jobId": "4432215036",
+      "title": "AI Project Manager",
+      "company": "Jobgether",
+      "score": 7,
+      "reason": "Related management role",
+      "url": "https://www.linkedin.com/jobs/view/4432215036/",
+      "appliedAt": "2026-06-23T09:05:24.283Z"
+    },
+    {
+      "jobId": "4432204070",
+      "title": "Scrum Master",
+      "company": "EPAM Systems",
+      "score": 9,
+      "reason": "Title is a direct PM/PMO match",
+      "url": "https://www.linkedin.com/jobs/view/4432204070/",
+      "appliedAt": "2026-06-23T09:05:37.962Z"
+    },
+    {
+      "jobId": "4432203095",
+      "title": "TPM Role",
+      "company": "HCLTech",
+      "score": 9,
+      "reason": "Title is a direct PM/PMO match",
+      "url": "https://www.linkedin.com/jobs/view/4432203095/",
+      "appliedAt": "2026-06-23T09:05:52.333Z"
+    },
+    {
+      "jobId": "4430878507",
+      "title": "Project Controls & Governance SME",
+      "company": "Capgemini Engineering",
+      "score": 5,
+      "reason": "Description mentions PM skills",
+      "url": "https://www.linkedin.com/jobs/view/4430878507/",
+      "appliedAt": "2026-06-23T09:06:06.054Z"
+    },
+    {
+      "jobId": "4430877656",
+      "title": "Senior Project Manager",
+      "company": "LumenData",
+      "score": 7,
+      "reason": "Related management role",
+      "url": "https://www.linkedin.com/jobs/view/4430877656/",
+      "appliedAt": "2026-06-23T09:06:19.818Z"
+    },
+    {
+      "jobId": "4430887102",
+      "title": "PROJECT MANAGER",
+      "company": "SymphonyAI",
+      "score": 7,
+      "reason": "Related management role",
+      "url": "https://www.linkedin.com/jobs/view/4430887102/",
+      "appliedAt": "2026-06-23T09:06:33.591Z"
+    }
+  ],
+  "skipped": [
+    {
+      "jobId": "4430566478",
+      "title": "B2B Marketing Program Manager",
+      "company": "HSV Digital",
+      "score": 2,
+      "reason": "Marketing/Sales role: B2B Marketing Program Manager"
+    }
+  ],
+  "errors": [],
+  "timestamp": "2026-06-23T09:06:36.473Z",
+  "triggeredBy": "manual"
+}

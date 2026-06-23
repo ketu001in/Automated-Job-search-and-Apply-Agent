@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LinkedIn Job Agent — Ketul Shah</title>
+<script src="/socket.io/socket.io.js"></script>
+<style>
+  :root {
+    --blue: #0a66c2;
+    --green: #057642;
+    --red: #cc1016;
+    --orange: #e87722;
+    --bg: #f3f2ef;
+    --card: #ffffff;
+    --text: #191919;
+    --muted: #666;
+    --border: #e0e0e0;
+    --radius: 10px;
+    --log-bg: #111;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); }
+
+  /* Header */
+  header { background: var(--blue); color: #fff; padding: 16px 24px; display: flex; align-items: center; gap: 12px; }
+  header h1 { font-size: 1.2rem; font-weight: 600; }
+  header .subtitle { font-size: 0.8rem; opacity: 0.8; }
+  .logo { font-size: 1.5rem; }
+
+  /* Layout */
+  main { max-width: 900px; margin: 0 auto; padding: 20px 16px; display: grid; gap: 16px; }
+
+  /* Card */
+  .card { background: var(--card); border-radius: var(--radius); border: 1px solid var(--border); padding: 18px 20px; }
+  .card h2 { font-size: 0.85rem; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); margin-bottom: 12px; }
+
+  /* Status row */
+  .status-row { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+  .badge { display: inline-flex; align-items: center; gap: 6px; padding: 5px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: 600; }
+  .badge.idle    { background: #e8f5e9; color: var(--green); }
+  .badge.running { background: #fff3e0; color: var(--orange); }
+  .badge.error   { background: #fdecea; color: var(--red); }
+  .pulse { width: 8px; height: 8px; border-radius: 50%; background: currentColor; animation: pulse 1.2s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:.3;} }
+
+  /* Buttons */
+  .btn { padding: 9px 20px; border-radius: 20px; border: none; cursor: pointer; font-size: 0.9rem; font-weight: 600; transition: opacity .2s; }
+  .btn:disabled { opacity: .45; cursor: not-allowed; }
+  .btn-primary { background: var(--blue); color: #fff; }
+  .btn-success { background: var(--green); color: #fff; }
+  .btn-sm { font-size: 0.8rem; padding: 6px 14px; }
+
+  /* Schedule info */
+  .schedule-info { display: flex; gap: 20px; flex-wrap: wrap; }
+  .schedule-item { display: flex; flex-direction: column; gap: 2px; }
+  .schedule-item .label { font-size: 0.75rem; color: var(--muted); }
+  .schedule-item .value { font-size: 0.95rem; font-weight: 600; }
+
+  /* Log */
+  .log-box { background: var(--log-bg); border-radius: 8px; padding: 14px; height: 260px; overflow-y: auto; font-family: 'Menlo', 'Consolas', monospace; font-size: 0.78rem; line-height: 1.6; }
+  .log-entry { display: flex; gap: 8px; }
+  .log-entry .ts { color: #555; flex-shrink: 0; }
+  .log-entry.info    .msg { color: #ccc; }
+  .log-entry.success .msg { color: #4caf50; }
+  .log-entry.warning .msg { color: #ff9800; }
+  .log-entry.error   .msg { color: #f44336; }
+
+  /* Stats */
+  .stats-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  .stat-box { text-align: center; padding: 14px 8px; background: var(--bg); border-radius: 8px; }
+  .stat-box .num { font-size: 2rem; font-weight: 700; color: var(--blue); }
+  .stat-box .lbl { font-size: 0.75rem; color: var(--muted); margin-top: 2px; }
+  .stat-box.green .num { color: var(--green); }
+  .stat-box.orange .num { color: var(--orange); }
+
+  /* Job table */
+  .job-list { list-style: none; display: flex; flex-direction: column; gap: 8px; margin-top: 8px; }
+  .job-item { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; padding: 10px 14px; background: var(--bg); border-radius: 8px; font-size: 0.85rem; }
+  .job-item .job-info { flex: 1; }
+  .job-item .job-title { font-weight: 600; }
+  .job-item .job-company { color: var(--muted); }
+  .job-score { background: var(--green); color: #fff; padding: 2px 8px; border-radius: 10px; font-size: 0.75rem; font-weight: 700; white-space: nowrap; }
+  .job-score.skip { background: var(--orange); }
+  .empty-state { color: var(--muted); font-size: 0.9rem; text-align: center; padding: 20px; }
+
+  /* Session section */
+  .session-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+
+  /* Responsive */
+  @media(max-width: 600px) {
+    .stats-row { grid-template-columns: repeat(3, 1fr); gap: 8px; }
+    .stat-box .num { font-size: 1.5rem; }
+    .schedule-info { flex-direction: column; gap: 10px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">🤖</div>
+  <div>
+    <h1>LinkedIn Job Agent</h1>
+    <div class="subtitle">Ketul Shah · Senior Technical Program Manager · Bengaluru</div>
+  </div>
+</header>
+
+<main>
+
+  <!-- Status + Run -->
+  <div class="card">
+    <h2>Agent Status</h2>
+    <div class="status-row">
+      <span id="statusBadge" class="badge idle"><span class="pulse"></span> Idle</span>
+      <button id="runBtn" class="btn btn-primary" onclick="triggerRun()">▶ Run Now</button>
+      <button id="saveSessionBtn" class="btn btn-success btn-sm" onclick="saveSession()" title="If LinkedIn session expired, log in manually in the Playwright browser and click this">💾 Save LinkedIn Session</button>
+    </div>
+  </div>
+
+  <!-- Schedule -->
+  <div class="card">
+    <h2>Schedule</h2>
+    <div class="schedule-info">
+      <div class="schedule-item">
+        <span class="label">Runs automatically</span>
+        <span class="value" id="scheduleLabel">Every day at 10:00 AM IST</span>
+      </div>
+      <div class="schedule-item">
+        <span class="label">Next scheduled run</span>
+        <span class="value" id="nextRun">—</span>
+      </div>
+      <div class="schedule-item">
+        <span class="label">Searches</span>
+        <span class="value">Senior Program Manager · Program Manager · PMO</span>
+      </div>
+      <div class="schedule-item">
+        <span class="label">Location</span>
+        <span class="value">Bengaluru, KA · Past 24 hrs · Easy Apply</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Last Run Summary -->
+  <div class="card">
+    <h2>Last Run Summary</h2>
+    <div class="stats-row">
+      <div class="stat-box green">
+        <div class="num" id="statApplied">—</div>
+        <div class="lbl">Applied</div>
+      </div>
+      <div class="stat-box orange">
+        <div class="num" id="statSkipped">—</div>
+        <div class="lbl">Skipped</div>
+      </div>
+      <div class="stat-box">
+        <div class="num" id="statErrors">—</div>
+        <div class="lbl">Errors</div>
+      </div>
+    </div>
+    <div id="lastRunTime" style="font-size:0.8rem;color:var(--muted);margin-top:10px;"></div>
+  </div>
+
+  <!-- Applied Jobs -->
+  <div class="card">
+    <h2>Jobs Applied (Last Run)</h2>
+    <ul class="job-list" id="appliedList">
+      <li class="empty-state">No run yet — click "Run Now" or wait for the 10 AM schedule.</li>
+    </ul>
+  </div>
+
+  <!-- Skipped Jobs -->
+  <div class="card">
+    <h2>Jobs Skipped (Last Run)</h2>
+    <ul class="job-list" id="skippedList">
+      <li class="empty-state">—</li>
+    </ul>
+  </div>
+
+  <!-- Live Logs -->
+  <div class="card">
+    <h2>Live Log <span style="font-weight:400;color:var(--muted);text-transform:none;">(real-time)</span></h2>
+    <div class="log-box" id="logBox"></div>
+  </div>
+
+</main>
+
+<script>
+const socket = io();
+
+// ─── Socket events ─────────────────────────────────────────────────────────
+
+socket.on('history', (logs) => {
+  logs.forEach(addLog);
+  scrollLog();
+});
+
+socket.on('log', (entry) => {
+  addLog(entry);
+  scrollLog();
+});
+
+socket.on('status', ({ running }) => {
+  const badge = document.getElementById('statusBadge');
+  const runBtn = document.getElementById('runBtn');
+  if (running) {
+    badge.className = 'badge running';
+    badge.innerHTML = '<span class="pulse"></span> Running…';
+    runBtn.disabled = true;
+  } else {
+    badge.className = 'badge idle';
+    badge.innerHTML = '<span class="pulse"></span> Idle';
+    runBtn.disabled = false;
+  }
+});
+
+socket.on('report', (report) => {
+  if (!report) return;
+  renderReport(report);
+});
+
+// ─── On load ───────────────────────────────────────────────────────────────
+
+(async () => {
+  const r = await fetch('/api/status').then(r => r.json());
+  if (r.nextRun) document.getElementById('nextRun').textContent = r.nextRun;
+  if (r.lastReport) renderReport(r.lastReport);
+  if (r.running) {
+    document.getElementById('statusBadge').className = 'badge running';
+    document.getElementById('statusBadge').innerHTML = '<span class="pulse"></span> Running…';
+    document.getElementById('runBtn').disabled = true;
+  }
+})();
+
+// ─── Actions ───────────────────────────────────────────────────────────────
+
+async function triggerRun() {
+  const btn = document.getElementById('runBtn');
+  btn.disabled = true;
+  await fetch('/api/run', { method: 'POST' });
+}
+
+async function saveSession() {
+  // This endpoint is called after the user has manually logged in to LinkedIn
+  // in the Playwright browser window (when HEADLESS=false).
+  // The server automatically saves cookies after each login — this button
+  // is a fallback for edge cases.
+  const r = await fetch('/api/session-status').then(r => r.json());
+  if (r.hasSavedSession) {
+    alert('✅ A LinkedIn session is already saved.\nIf you need to refresh it, set HEADLESS=false in .env and run the agent — it will re-login and save fresh cookies automatically.');
+  } else {
+    alert('ℹ️  No saved session found.\nSet HEADLESS=false in .env, start the agent, and log in manually in the browser window that appears. The session will be saved automatically.');
+  }
+}
+
+// ─── Rendering ─────────────────────────────────────────────────────────────
+
+function renderReport(report) {
+  document.getElementById('statApplied').textContent = (report.applied || []).length;
+  document.getElementById('statSkipped').textContent = (report.skipped || []).length;
+  document.getElementById('statErrors').textContent  = (report.errors  || []).length;
+
+  if (report.timestamp) {
+    const d = new Date(report.timestamp);
+    document.getElementById('lastRunTime').textContent =
+      `Last run: ${d.toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })} IST · trigger: ${report.triggeredBy || 'unknown'}`;
+  }
+
+  // Applied list
+  const appliedList = document.getElementById('appliedList');
+  if ((report.applied || []).length === 0) {
+    appliedList.innerHTML = '<li class="empty-state">No jobs applied in this run.</li>';
+  } else {
+    appliedList.innerHTML = report.applied.map(j => `
+      <li class="job-item">
+        <div class="job-info">
+          <div class="job-title"><a href="${j.url || '#'}" target="_blank">${esc(j.title)}</a></div>
+          <div class="job-company">${esc(j.company)}</div>
+          <div style="font-size:0.75rem;color:var(--muted);margin-top:2px;">${esc(j.reason || '')}</div>
+        </div>
+        <span class="job-score">${j.score}/10</span>
+      </li>
+    `).join('');
+  }
+
+  // Skipped list
+  const skippedList = document.getElementById('skippedList');
+  if ((report.skipped || []).length === 0) {
+    skippedList.innerHTML = '<li class="empty-state">None skipped.</li>';
+  } else {
+    skippedList.innerHTML = report.skipped.map(j => `
+      <li class="job-item">
+        <div class="job-info">
+          <div class="job-title">${esc(j.title)}</div>
+          <div class="job-company">${esc(j.company)}</div>
+          <div style="font-size:0.75rem;color:var(--muted);margin-top:2px;">${esc(j.reason || '')}</div>
+        </div>
+        <span class="job-score skip">${j.score || '—'}/10</span>
+      </li>
+    `).join('');
+  }
+}
+
+function addLog(entry) {
+  const box = document.getElementById('logBox');
+  const div = document.createElement('div');
+  div.className = `log-entry ${entry.type || 'info'}`;
+  const ts = new Date(entry.time).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+  div.innerHTML = `<span class="ts">${ts}</span><span class="msg">${esc(entry.message)}</span>`;
+  box.appendChild(div);
+}
+
+function scrollLog() {
+  const box = document.getElementById('logBox');
+  box.scrollTop = box.scrollHeight;
+}
+
+function esc(s) {
+  return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+</script>
+</body>
+</html>
