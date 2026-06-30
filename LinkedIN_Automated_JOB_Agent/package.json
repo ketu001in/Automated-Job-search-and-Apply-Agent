@@ -1,0 +1,93 @@
+{
+  "name": "nexora",
+  "version": "1.0.0",
+  "description": "Nexora — Gets smarter with every application. Intelligent LinkedIn job automation by Bosket's Tech Ventures.",
+  "main": "src/main/main.js",
+  "author": {
+    "name": "Bosket's Tech Ventures",
+    "email": "support@bosketstechventures.com"
+  },
+  "license": "UNLICENSED",
+  "private": true,
+  "scripts": {
+    "start": "electron .",
+    "dev": "electron . --dev",
+    "build": "electron-builder --win",
+    "build:win": "electron-builder --win",
+    "build:mac": "electron-builder --mac",
+    "setup-browser": "node scripts/setup-browser.js",
+    "postinstall": "electron-builder install-app-deps"
+  },
+  "dependencies": {
+    "axios": "^1.7.9",
+    "cheerio": "^1.0.0",
+    "electron-store": "^8.2.0",
+    "mammoth": "^1.8.0",
+    "node-cron": "^3.0.3",
+    "pdf-parse": "^1.1.1",
+    "playwright": "^1.47.0"
+  },
+  "devDependencies": {
+    "electron": "^28.3.3",
+    "electron-builder": "^24.13.3"
+  },
+  "build": {
+    "appId": "com.bosketstechventures.nexora",
+    "productName": "Nexora",
+    "copyright": "Copyright © 2025-2026 Bosket's Tech Ventures. All rights reserved.",
+    "directories": {
+      "output": "dist",
+      "buildResources": "build"
+    },
+    "files": [
+      "src/**/*",
+      "assets/**/*",
+      "docs/**/*",
+      "README.txt",
+      "!src/**/*.map",
+      "!node_modules/**/{CHANGELOG.md,README.md,readme.md,*.d.ts,*.map}",
+      "!node_modules/.cache",
+      "!node_modules/playwright/node_modules/.cache"
+    ],
+    "extraResources": [
+      {
+        "from": "assets",
+        "to": "assets"
+      },
+      {
+        "from": "docs",
+        "to": "docs"
+      },
+      {
+        "from": "README.txt",
+        "to": "README.txt"
+      }
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "zip",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "assets/icons/icon.png",
+      "publisherName": "Bosket's Tech Ventures",
+      "verifyUpdateCodeSignature": false,
+      "requestedExecutionLevel": "asInvoker"
+    },
+    "nsis": {
+      "oneClick": true,
+      "perMachine": false,
+      "allowElevation": false,
+      "allowToChangeInstallationDirectory": false,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Nexora",
+      "menuCategory": "Bosket's Tech Ventures",
+      "uninstallDisplayName": "Nexora v${version} by Bosket's Tech Ventures",
+      "license": "build/license.txt"
+    }
+  }
+}

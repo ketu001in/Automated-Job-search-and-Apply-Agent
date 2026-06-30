@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>My Profile — Nexora</title>
+<link rel="stylesheet" href="../shared/styles.css"/>
+<style>
+html,body{height:100%;overflow:hidden;}
+body{display:flex;background:var(--bg,#0d0d0d);color:var(--text,#e2e2e2);font-family:var(--font,system-ui,sans-serif);}
+.sidebar{width:220px;min-width:220px;background:var(--sidebar-bg,#0a0a0a);display:flex;flex-direction:column;height:100vh;overflow:hidden;}
+.sidebar-brand{padding:22px 18px 14px;border-bottom:1px solid rgba(255,255,255,0.06);}
+.sidebar-brand .app-name{color:#fff;font-size:16px;font-weight:800;letter-spacing:-0.02em;}
+.sidebar-brand .tagline{color:rgba(255,255,255,0.3);font-size:10px;margin-top:3px;font-style:italic;}
+.sidebar-brand .company{color:rgba(255,255,255,0.25);font-size:10px;margin-top:1px;}
+.sidebar-brand .version-badge{display:inline-block;margin-top:6px;background:var(--primary,#3b82f6);color:#fff;font-size:9px;font-weight:700;padding:2px 7px;border-radius:999px;}
+.sidebar-nav{flex:1;padding:10px 0;overflow-y:auto;}
+.nav-item{display:flex;align-items:center;gap:10px;padding:10px 18px;font-size:13px;font-weight:500;color:var(--sidebar-text,#6b7280);cursor:pointer;border-left:3px solid transparent;transition:.15s;user-select:none;}
+.nav-item:hover{background:rgba(255,255,255,0.05);color:#e2e8f0;}
+.nav-item.active{background:var(--sidebar-active-bg,rgba(59,130,246,0.12));color:var(--sidebar-active-text,#60a5fa);border-left-color:var(--sidebar-active-border,#3b82f6);}
+.nav-item .nav-icon{font-size:15px;width:20px;text-align:center;}
+.section-jump{display:flex;align-items:center;gap:7px;padding:7px 18px 7px 23px;font-size:12px;font-weight:600;color:#9aa0b8;text-decoration:none;border-left:3px solid transparent;transition:.15s;cursor:pointer;}
+.section-jump:hover{color:#ffffff;border-left-color:#3b82f6;background:rgba(59,130,246,0.08);}
+.section-jump.active{color:#ffffff;font-weight:700;background:rgba(79,142,247,0.18);border-left-color:#4f8ef7;box-shadow:inset 0 0 0 1px rgba(79,142,247,0.18);}
+.sect-label{padding:10px 18px 4px;font-size:9px;font-weight:700;letter-spacing:.12em;color:#2d3748;text-transform:uppercase;}
+.sidebar-footer{padding:12px 18px;border-top:1px solid rgba(255,255,255,0.06);color:rgba(255,255,255,0.18);font-size:10px;}
+.main{flex:1;display:flex;flex-direction:column;height:100vh;overflow:hidden;min-width:0;}
+.page-header{padding:16px 24px 14px;border-bottom:1px solid var(--border,rgba(255,255,255,0.08));background:var(--card,#161616);flex-shrink:0;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;}
+.page-header h1{font-size:18px;font-weight:700;}
+.page-header .subtitle{font-size:11px;color:var(--text-muted,#6b7280);margin-top:2px;}
+.content{flex:1;overflow-y:auto;padding:18px 22px 40px;display:flex;flex-direction:column;gap:16px;}
+.sec{background:var(--card,#161616);border:1px solid var(--border,rgba(255,255,255,0.08));box-shadow:0 0 0 1px rgba(255,255,255,0.04);border-radius:10px;padding:20px 22px;}
+.sec-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-muted,#6b7280);margin-bottom:16px;padding-bottom:10px;border-bottom:1px solid var(--border,rgba(255,255,255,0.06));}
+.form-row{display:flex;gap:12px;}
+.form-row .fg{flex:1;}
+.fg{margin-bottom:13px;}
+.fg:last-child{margin-bottom:0;}
+.fl{display:block;font-size:12px;font-weight:600;color:var(--text,#e2e2e2);margin-bottom:5px;letter-spacing:.04em;}
+.fl .req{color:var(--error,#ef4444);margin-left:2px;}
+.fi,.fselect,.fta{width:100%;padding:8px 11px;border:1px solid rgba(255,255,255,0.1);border-radius:7px;background:var(--input-bg,#111);color:var(--text,#e2e2e2);font-size:13px;font-family:inherit;outline:none;transition:.15s;appearance:none;}
+.fi:focus,.fselect:focus,.fta:focus{border-color:var(--primary,#3b82f6);box-shadow:0 0 0 3px rgba(59,130,246,0.18);}
+.fselect{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 10 10'%3E%3Cpath fill='%236b7280' d='M5 7L1 2h8z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 9px center;padding-right:28px;}
+.fta{resize:vertical;min-height:70px;}
+.ph-wrap{display:flex;gap:8px;}
+.ph-wrap .fselect{width:120px;flex-shrink:0;}
+.ph-wrap .fi{flex:1;}
+.pw-wrap{position:relative;display:flex;}
+.pw-wrap .fi{padding-right:38px;flex:1;}
+.pw-btn{position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--text-muted,#6b7280);font-size:13px;}
+.pw-btn:hover{color:var(--primary,#3b82f6);}
+.hint{font-size:11px;color:var(--text-muted,#6b7280);margin-top:4px;}
+.entry{background:#111;border:1px solid var(--border,rgba(255,255,255,0.08));border-radius:8px;padding:14px 16px;margin-bottom:12px;}
+.entry:last-child{margin-bottom:0;}
+.entry-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;}
+.entry-num{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-muted,#6b7280);}
+.btn-sm-ghost{padding:4px 10px;border-radius:6px;font-size:11px;font-weight:600;background:rgba(239,68,68,0.1);color:#ef4444;border:1px solid rgba(239,68,68,0.25);cursor:pointer;transition:.15s;}
+.btn-sm-ghost:hover{background:rgba(239,68,68,0.2);}
+.grade-toggle{display:inline-flex;border:1px solid rgba(255,255,255,0.1);border-radius:6px;overflow:hidden;}
+.grade-toggle button{padding:5px 13px;background:transparent;border:none;cursor:pointer;font-size:11px;font-weight:600;color:var(--text-muted,#6b7280);transition:.15s;}
+.grade-toggle button.active{background:var(--primary,#3b82f6);color:#fff;}
+.chips-wrap{display:flex;flex-wrap:wrap;gap:5px;padding:6px 9px;border:1px solid rgba(255,255,255,0.1);border-radius:7px;background:var(--input-bg,#111);min-height:38px;cursor:text;}
+.chips-wrap:focus-within{border-color:var(--primary,#3b82f6);box-shadow:0 0 0 3px rgba(59,130,246,0.18);}
+.chips-wrap input{border:none;outline:none;background:transparent;color:var(--text,#e2e2e2);font-size:13px;flex:1;min-width:80px;padding:0;}
+.chip{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;background:rgba(59,130,246,0.15);color:#60a5fa;border:1px solid rgba(59,130,246,0.25);border-radius:999px;font-size:11px;font-weight:600;}
+.chip-x{cursor:pointer;opacity:.6;font-size:13px;line-height:1;}
+.chip-x:hover{opacity:1;}
+.loc-wrap{position:relative;}
+.loc-dd{position:absolute;top:calc(100% + 4px);left:0;right:0;background:var(--card,#161616);border:1px solid var(--border,rgba(255,255,255,0.08));border-radius:7px;box-shadow:0 4px 16px rgba(0,0,0,0.4);max-height:200px;overflow-y:auto;z-index:200;display:none;}
+.loc-dd.open{display:block;}
+.loc-dd optgroup{font-size:10px;font-weight:700;color:#374151;text-transform:uppercase;letter-spacing:.08em;padding:6px 10px 2px;}
+.loc-opt{padding:8px 12px;cursor:pointer;font-size:12px;color:var(--text,#e2e2e2);}
+.loc-opt:hover{background:rgba(59,130,246,0.1);color:#60a5fa;}
+.yn-toggle{display:flex;gap:6px;}
+.yn-btn{padding:5px 14px;border-radius:7px;font-size:12px;font-weight:600;border:1.5px solid rgba(255,255,255,0.1);cursor:pointer;background:transparent;color:var(--text-muted,#6b7280);transition:.15s;}
+.yn-btn.active-yes{border-color:#10b981;background:rgba(16,185,129,0.12);color:#10b981;}
+.yn-btn.active-no{border-color:#ef4444;background:rgba(239,68,68,0.12);color:#ef4444;}
+.btn-add{padding:7px 14px;border-radius:7px;font-size:12px;font-weight:600;background:rgba(59,130,246,0.1);color:#60a5fa;border:1px solid rgba(59,130,246,0.2);cursor:pointer;transition:.15s;margin-top:10px;}
+.btn-add:hover{background:rgba(59,130,246,0.18);}
+.btn-save{display:inline-flex;align-items:center;gap:6px;padding:9px 22px;border-radius:8px;background:linear-gradient(135deg,#10b981,#059669);color:#fff;font-size:13px;font-weight:700;border:none;cursor:pointer;box-shadow:0 2px 8px rgba(16,185,129,0.25);transition:.15s;}
+.btn-save:hover{transform:translateY(-1px);box-shadow:0 0 20px rgba(16,185,129,0.35);}
+.cv-bar{display:flex;align-items:center;gap:10px;padding:10px 13px;background:#111;border:1px solid var(--border,rgba(255,255,255,0.08));border-radius:7px;margin-bottom:12px;}
+.cv-bar .cv-name{font-size:13px;font-weight:600;flex:1;}
+.cv-bar .cv-date{font-size:11px;color:var(--text-muted,#6b7280);}
+.spinner-wrap{display:none;align-items:center;gap:10px;padding:14px 0;}
+.spinner-wrap.vis{display:flex;}
+.spinner{width:22px;height:22px;border:2.5px solid rgba(59,130,246,0.2);border-top-color:var(--primary,#3b82f6);border-radius:50%;animation:spin .7s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg)}}
+.toast{position:fixed;top:18px;right:18px;z-index:9999;padding:11px 18px;border-radius:8px;font-size:13px;font-weight:600;box-shadow:0 4px 16px rgba(0,0,0,.5);transform:translateX(120%);transition:transform .25s;}
+.toast.show{transform:translateX(0);}
+.toast-s{background:linear-gradient(135deg,#10b981,#059669);color:#fff;}
+.toast-e{background:linear-gradient(135deg,#ef4444,#dc2626);color:#fff;}
+.unsaved{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:rgba(245,158,11,0.15);color:#f59e0b;border:1px solid rgba(245,158,11,0.3);padding:6px 16px;border-radius:999px;font-size:12px;font-weight:600;display:none;z-index:9998;}
+.unsaved.show{display:block;}
+.sched-toggle-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:4px 0 12px;}
+.switch{position:relative;width:38px;height:21px;flex-shrink:0;}
+.switch input{opacity:0;width:0;height:0;position:absolute;}
+.switch-slider{position:absolute;inset:0;background:#2a2a2a;border-radius:999px;cursor:pointer;transition:.2s;}
+.switch-slider::before{content:'';position:absolute;width:15px;height:15px;border-radius:50%;left:3px;top:3px;background:#fff;transition:transform .2s;}
+.switch input:checked + .switch-slider{background:var(--primary,#3b82f6);}
+.switch input:checked + .switch-slider::before{transform:translateX(17px);}
+.radio-group{display:flex;gap:7px;flex-wrap:wrap;}
+.ropt{display:none;}.ropt+label{padding:5px 13px;border-radius:7px;font-size:11px;font-weight:600;border:1.5px solid rgba(255,255,255,0.1);cursor:pointer;color:var(--text-muted,#6b7280);transition:.15s;user-select:none;}
+.ropt:checked+label{border-color:var(--primary,#3b82f6);background:rgba(59,130,246,0.12);color:#60a5fa;}
+</style>
+</head>
+<body>
+
+<aside class="sidebar">
+  <div class="sidebar-brand">
+    <svg width="148" height="40" viewBox="0 0 158 42" xmlns="http://www.w3.org/2000/svg" style="display:block;margin-bottom:4px;">
+      <defs>
+        <linearGradient id="nlg" x1="0%" y1="100%" x2="100%" y2="0%">
+          <stop offset="0%" stop-color="#1d4ed8"/><stop offset="45%" stop-color="#3b82f6"/><stop offset="100%" stop-color="#93c5fd"/>
+        </linearGradient>
+        <filter id="nglow"><feGaussianBlur stdDeviation="1.8" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+      </defs>
+      <g filter="url(#nglow)" stroke="url(#nlg)" fill="none" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="5" y1="34" x2="5" y2="7" stroke-width="4.5"/>
+        <line x1="5" y1="7" x2="22" y2="34" stroke-width="3.8"/>
+        <line x1="22" y1="7" x2="22" y2="24" stroke-width="4.5"/>
+        <line x1="22" y1="22" x2="36" y2="5" stroke-width="3.8"/>
+        <polyline points="28,4 36,4 36,12" stroke-width="3.8"/>
+      </g>
+      <text x="48" y="28" font-family="-apple-system,BlinkMacSystemFont,sans-serif" font-size="21" font-weight="900" letter-spacing="2.5" fill="url(#nlg)">NEXORA</text>
+    </svg>
+    <div class="tagline">Gets smarter with every application.</div>
+    <div class="company">Bosket's Tech Ventures</div>
+    <span class="version-badge">FREE v1.0</span>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-item" onclick="window.api.navigate('dashboard')"><span class="nav-icon">🏠</span> Dashboard</div>
+    <div class="nav-item" onclick="window.api.navigate('settings')"><span class="nav-icon">⚙️</span> Settings</div>
+    <div class="nav-item active"><span class="nav-icon">👤</span> My Profile</div>
+    <div class="sect-label">Jump to Section</div>
+    <a class="section-jump" href="#sec-category">💡 IT / Non-IT Category</a>
+    <a class="section-jump" href="#sec-li">🔑 LinkedIn</a>
+    <a class="section-jump" href="#sec-cv">📄 CV / Resume</a>
+    <a class="section-jump" href="#sec-personal">👤 Personal</a>
+    <a class="section-jump" href="#sec-address">📍 Address</a>
+    <a class="section-jump" href="#sec-education">🎓 Education</a>
+    <a class="section-jump" href="#sec-experience">💼 Experience</a>
+    <a class="section-jump" href="#sec-prefs">🎯 Job Preferences</a>
+    <a class="section-jump" href="#sec-travel">✈️ Travel &amp; Schedule</a>
+  </nav>
+  <div class="sidebar-footer">v1.0.0 · Nexora</div>
+</aside>
+
+<div class="main">
+  <div class="page-header">
+    <div><h1>My Profile</h1><div class="subtitle">All fields are pre-filled from your saved data. Review and save changes.</div></div>
+    <button class="btn-save" onclick="saveAll()">💾 Save All Changes</button>
+  </div>
+  <div class="content">
+
+    <!-- LinkedIn -->
+    <div class="sec" id="sec-li">
+      <div class="sec-title">LinkedIn Account</div>
+      <div class="fg"><label class="fl">Email</label><input class="fi" type="email" id="liEmail" placeholder="your@email.com"/></div>
+      <div class="fg"><label class="fl">Password</label>
+        <div class="pw-wrap"><input class="fi" type="password" id="liPassword" placeholder="••••••••"/>
+          <button class="pw-btn" onclick="togglePwd()">👁</button></div>
+        <div class="hint">Stored locally on this device only.</div>
+      </div>
+    </div>
+
+    <!-- CV -->
+    <div class="sec" id="sec-cv">
+      <div class="sec-title">CV / Resume</div>
+      <div class="cv-bar" id="cvBar">
+        <span style="font-size:20px;">📄</span>
+        <div style="flex:1;"><div class="cv-name" id="cvStatusName">No CV uploaded yet.</div>
+          <div class="cv-date" id="cvUploadDate">Upload a CV to auto-fill your profile.</div></div>
+      </div>
+      <div class="spinner-wrap" id="cvSpinner"><div class="spinner"></div><span id="cvSpinnerMsg" style="font-size:13px;color:var(--text-muted,#6b7280);">Parsing CV...</span></div>
+      <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+        <button class="btn-add" id="btnPickCV" onclick="pickCV()" style="margin-top:0;">📂 Upload New CV</button>
+        <span class="hint">PDF or DOCX · Max 5 MB</span>
+      </div>
+      <div class="hint" style="margin-top:8px;">💡 First upload auto-fills all fields below. Re-uploads only update the CV file — you'll be asked before overwriting existing data.</div>
+    </div>
+
+    <!-- Profile Category -->
+    <div class="sec" id="sec-category" style="border-left:3px solid var(--primary,#3b82f6);">
+      <div class="sec-title" style="color:#60a5fa;">Profile Category</div>
+      <div class="hint" style="margin-bottom:14px;">Nexora uses this to search the right job types on LinkedIn. Auto-detected from your CV — you can override here.</div>
+      <div style="display:flex;gap:12px;flex-wrap:wrap;">
+        <label id="cat-tech" onclick="setCat('tech')" style="flex:1;min-width:200px;cursor:pointer;padding:14px 16px;border-radius:10px;border:2px solid rgba(59,130,246,0.4);background:rgba(59,130,246,0.08);transition:.15s;">
+          <div style="font-weight:700;font-size:14px;color:#60a5fa;">💻 IT / TECH</div>
+          <div style="font-size:11px;color:#6b7280;margin-top:4px;">Software, Engineering, Cloud, Data, DevOps, Technical PM, IT Operations</div>
+        </label>
+        <label id="cat-nontech" onclick="setCat('non-tech')" style="flex:1;min-width:200px;cursor:pointer;padding:14px 16px;border-radius:10px;border:2px solid rgba(255,255,255,0.08);background:rgba(255,255,255,0.03);transition:.15s;">
+          <div style="font-weight:700;font-size:14px;color:#e2e2e2;">🏢 NON-IT / NON-TECH</div>
+          <div style="font-size:11px;color:#6b7280;margin-top:4px;">Operations, HR, Finance, Sales, Marketing, General Management, Business Analyst</div>
+        </label>
+      </div>
+    </div>
+
+    <!-- Personal -->
+    <div class="sec" id="sec-personal">
+      <div class="sec-title">Personal Details</div>
+      <div class="form-row"><div class="fg"><label class="fl">First Name <span class="req">*</span></label><input class="fi" id="firstName" placeholder="First name"/></div>
+        <div class="fg"><label class="fl">Last Name <span class="req">*</span></label><input class="fi" id="lastName" placeholder="Last name"/></div></div>
+      <div class="fg"><label class="fl">Email <span class="req">*</span></label><input class="fi" type="email" id="personalEmail" placeholder="your@email.com"/></div>
+      <div class="fg"><label class="fl">Phone</label>
+        <div class="ph-wrap">
+          <select class="fselect" id="countryCode">
+            <option value="+91">🇮🇳 +91</option><option value="+1">🇺🇸 +1</option><option value="+44">🇬🇧 +44</option>
+            <option value="+971">🇦🇪 +971</option><option value="+65">🇸🇬 +65</option><option value="+61">🇦🇺 +61</option>
+          </select>
+          <input class="fi" type="tel" id="phone" placeholder="Phone number"/>
+        </div>
+      </div>
+      <div class="fg"><label class="fl">LinkedIn Profile URL</label><input class="fi" id="linkedinUrl" placeholder="https://linkedin.com/in/yourprofile"/></div>
+      <div class="fg"><label class="fl">Portfolio / Website URL</label><input class="fi" id="portfolioUrl" placeholder="https://yourwebsite.com"/></div>
+    </div>
+
+    <!-- Address -->
+    <div class="sec" id="sec-address">
+      <div class="sec-title">Address</div>
+      <div class="hint" style="margin-bottom:12px;">Plain text only — no special characters (&quot; ' &lt; &gt; / \ | { } *)</div>
+      <div class="fg"><label class="fl">Address Line 1 <span class="req">*</span></label><input class="fi" id="addr1" placeholder="Street address"/></div>
+      <div class="fg"><label class="fl">Address Line 2</label><input class="fi" id="addr2" placeholder="Apt, Suite, Floor (optional)"/></div>
+      <div class="form-row">
+        <div class="fg"><label class="fl">City <span class="req">*</span></label><input class="fi" id="city" placeholder="City"/></div>
+        <div class="fg"><label class="fl">State / County <span class="req">*</span></label><input class="fi" id="state" placeholder="State"/></div>
+      </div>
+      <div class="form-row">
+        <div class="fg"><label class="fl">Country <span class="req">*</span></label><input class="fi" id="country" value="India" placeholder="Country"/></div>
+        <div class="fg"><label class="fl">Pincode / Zipcode <span class="req">*</span></label><input class="fi" id="pincode" placeholder="560001"/></div>
+      </div>
+    </div>
+
+    <!-- Education -->
+    <div class="sec" id="sec-education">
+      <div class="sec-title">Education</div>
+      <div id="eduList"></div>
+      <button class="btn-add" id="btnAddEdu" onclick="addEduEntry()">+ Add Education</button>
+    </div>
+
+    <!-- Experience -->
+    <div class="sec" id="sec-experience">
+      <div class="sec-title">Work Experience</div>
+      <div id="expList"></div>
+      <button class="btn-add" id="btnAddExp" onclick="addExpEntry()">+ Add Experience</button>
+    </div>
+
+    <!-- Preferences -->
+    <div class="sec" id="sec-prefs">
+      <div class="sec-title">Job Preferences</div>
+      <div class="fg"><label class="fl">Target Roles <span class="req">*</span></label>
+        <div class="chips-wrap" id="roleChipsWrap" onclick="document.getElementById('roleInput').focus()">
+          <input id="roleInput" placeholder="Type role, press Enter…"/>
+        </div>
+        <div class="hint">E.g. Program Manager, TPM, PMO Lead</div>
+      </div>
+      <div class="fg"><label class="fl">Location Preferences <span style="font-size:10px;color:var(--text-muted,#6b7280);">(max 3)</span></label>
+        <div class="loc-wrap">
+          <input class="fi" id="locationSearch" placeholder="Search city…" autocomplete="off" oninput="filterLocs(this.value)" onfocus="openLocDD()" onblur="setTimeout(closeLocDD,200)"/>
+          <div class="loc-dd" id="locDD"></div>
+        </div>
+        <div class="chips-wrap" id="locationChipsWrap" style="margin-top:7px;cursor:default;min-height:28px;"></div>
+      </div>
+      <div class="form-row">
+        <div class="fg"><label class="fl">Experience (Years)</label><select class="fselect" id="expYears"><option value="">Years</option></select></div>
+        <div class="fg"><label class="fl">Experience (Months)</label><select class="fselect" id="expMonths"><option value="">Months</option></select></div>
+      </div>
+      <div class="form-row">
+        <div class="fg"><label class="fl">Current CTC (LPA)</label><input class="fi" type="number" id="currentCTC" placeholder="e.g. 39"/></div>
+        <div class="fg"><label class="fl">Expected CTC (LPA)</label><input class="fi" type="number" id="expectedCTC" placeholder="e.g. 45"/></div>
+      </div>
+      <div class="fg"><label class="fl">Notice Period</label>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+          <input class="fi" type="number" id="noticePeriodVal" placeholder="e.g. 7" style="max-width:90px;"/>
+          <select class="fselect" id="noticePeriodUnit" style="max-width:110px;"><option value="days">Days</option><option value="months">Months</option></select>
+          <span style="font-size:12px;color:var(--text-muted,#6b7280);">Negotiable?</span>
+          <div class="yn-toggle" id="negotiableToggle">
+            <button class="yn-btn" data-val="yes" onclick="setYN('negotiableToggle','yes')">Yes</button>
+            <button class="yn-btn" data-val="no" onclick="setYN('negotiableToggle','no')">No</button>
+          </div>
+        </div>
+      </div>
+      <div class="fg"><label class="fl">How soon can you join?</label><input class="fi" id="joinSoon" placeholder="e.g. Immediately, Within 2 weeks"/></div>
+    </div>
+
+    <!-- Travel & Schedule -->
+    <div class="sec" id="sec-travel">
+      <div class="sec-title">Travel &amp; Schedule</div>
+      <div class="fg"><label class="fl">Willing to Travel?</label>
+        <div class="yn-toggle" id="travelToggle">
+          <button class="yn-btn" data-val="yes" onclick="setYN('travelToggle','yes');toggleTravelPct()">Yes</button>
+          <button class="yn-btn" data-val="no" onclick="setYN('travelToggle','no');toggleTravelPct()">No</button>
+        </div>
+      </div>
+      <div class="fg" id="travelPctWrap" style="display:none;">
+        <label class="fl">Travel Percentage</label>
+        <select class="fselect" id="travelPct" style="max-width:120px;"><option value="25">25%</option><option value="50">50%</option><option value="100">100%</option></select>
+      </div>
+      <div style="height:1px;background:var(--border,rgba(255,255,255,0.08));margin:14px 0;"></div>
+      <div class="sched-toggle-row">
+        <div><div style="font-size:13px;font-weight:500;">Enable automatic runs</div><div class="hint">Agent runs on the schedule below</div></div>
+        <label class="switch"><input type="checkbox" id="schedEnabled" onchange="toggleSched()"/><span class="switch-slider"></span></label>
+      </div>
+      <div id="schedOptions" style="display:none;">
+        <div class="fg"><label class="fl">Frequency</label>
+          <div class="radio-group">
+            <input class="ropt" type="radio" name="sf" id="sfd" value="daily" checked/><label for="sfd">Daily</label>
+            <input class="ropt" type="radio" name="sf" id="sfw" value="weekly"/><label for="sfw">Weekly</label>
+            <input class="ropt" type="radio" name="sf" id="sfm" value="monthly"/><label for="sfm">Monthly</label>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="fg"><label class="fl">Time</label><input class="fi" type="time" id="schedTime" value="10:00" style="max-width:130px;"/></div>
+          <div class="fg" id="dowRow" style="display:none;"><label class="fl">Day of Week</label>
+            <select class="fselect" id="schedDow"><option value="1">Monday</option><option value="2">Tuesday</option><option value="3">Wednesday</option><option value="4">Thursday</option><option value="5">Friday</option><option value="6">Saturday</option><option value="0">Sunday</option></select>
+          </div>
+          <div class="fg" id="domRow" style="display:none;"><label class="fl">Day of Month</label><select class="fselect" id="schedDom"></select></div>
+        </div>
+      </div>
+    </div>
+
+    <div style="text-align:center;padding-bottom:10px;">
+      <button class="btn-save" onclick="saveAll()">💾 Save All Changes</button>
+    </div>
+
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<div class="unsaved" id="unsaved">● Unsaved changes</div>
+
+<script src="../shared/help.js"></script>
+<script>
+/* ── State ── */
+let eduEntries=[], eduCounter=0, expEntries=[], expCounter=0;
+let roleChips=[], locationChips=[], negotiableVal=null, travelVal=null, schedEnabled=false;
+let dirty=false;
+let profileCategory='tech';
+
+function setCat(cat, silent) {
+  profileCategory = cat;
+  const techEl    = document.getElementById('cat-tech');
+  const nonTechEl = document.getElementById('cat-nontech');
+  if (techEl)    techEl.style.cssText    = cat==='tech'
+    ? 'flex:1;min-width:200px;cursor:pointer;padding:14px 16px;border-radius:10px;border:2px solid rgba(59,130,246,0.7);background:rgba(59,130,246,0.15);transition:.15s;'
+    : 'flex:1;min-width:200px;cursor:pointer;padding:14px 16px;border-radius:10px;border:2px solid rgba(255,255,255,0.08);background:rgba(255,255,255,0.03);transition:.15s;';
+  if (nonTechEl) nonTechEl.style.cssText = cat==='non-tech'
+    ? 'flex:1;min-width:200px;cursor:pointer;padding:14px 16px;border-radius:10px;border:2px solid rgba(245,158,11,0.7);background:rgba(245,158,11,0.1);transition:.15s;'
+    : 'flex:1;min-width:200px;cursor:pointer;padding:14px 16px;border-radius:10px;border:2px solid rgba(255,255,255,0.08);background:rgba(255,255,255,0.03);transition:.15s;';
+  if (!silent) markDirty();
+}
+
+const CITIES_INDIA = ['Bengaluru','Mumbai','Delhi NCR','Hyderabad','Chennai','Pune','Kolkata','Ahmedabad','Jaipur','Noida','Gurgaon','Chandigarh','Kochi','Mysuru','Indore','Bhopal','Nagpur','Remote (India)','Pan India'];
+const CITIES_INTL  = ['Singapore','Dubai','London','Toronto','Sydney','New York','San Francisco','Remote (Global)'];
+const ALL_CITIES   = [...CITIES_INDIA, ...CITIES_INTL];
+
+/* ── Helpers ── */
+function v(id){return(document.getElementById(id)||{}).value||'';}
+function sv(id,val){const e=document.getElementById(id);if(e&&val!==undefined&&val!==null)e.value=val;}
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function markDirty(){dirty=true;const e=document.getElementById('unsaved');if(e)e.classList.add('show');}
+function clearDirty(){dirty=false;const e=document.getElementById('unsaved');if(e)e.classList.remove('show');}
+function showToast(msg,type='s'){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.className='toast toast-'+type+' show';
+  setTimeout(()=>t.classList.remove('show'),3000);
+}
+function togglePwd(){const i=document.getElementById('liPassword');i.type=i.type==='password'?'text':'password';}
+
+/* ── YN Toggle ── */
+function setYN(id,val){
+  const wrap=document.getElementById(id);if(!wrap)return;
+  wrap.querySelectorAll('.yn-btn').forEach(b=>{b.className='yn-btn'+(b.dataset.val===val?' active-'+val:'');});
+  if(id==='negotiableToggle')negotiableVal=val;
+  if(id==='travelToggle')travelVal=val;
+  markDirty();
+}
+function setYNToggle(id,val){setYN(id,val);}
+
+/* ── Travel ── */
+function toggleTravelPct(){
+  document.getElementById('travelPctWrap').style.display=travelVal==='yes'?'block':'none';
+}
+
+/* ── Schedule ── */
+function toggleSched(){
+  schedEnabled=document.getElementById('schedEnabled').checked;
+  document.getElementById('schedOptions').style.display=schedEnabled?'block':'none';
+  markDirty();
+}
+document.querySelectorAll('input[name="sf"]').forEach(r=>r.addEventListener('change',()=>{
+  document.getElementById('dowRow').style.display=r.value==='weekly'&&r.checked?'block':'none';
+  document.getElementById('domRow').style.display=r.value==='monthly'&&r.checked?'block':'none';
+}));
+
+/* ── DOM selects ── */
+(()=>{
+  const ys=document.getElementById('expYears'),ms=document.getElementById('expMonths');
+  for(let i=0;i<=50;i++){const o=document.createElement('option');o.value=i;o.textContent=i+' yr'+(i===1?'':'s');ys.appendChild(o);}
+  for(let i=0;i<=11;i++){const o=document.createElement('option');o.value=i;o.textContent=i+' mo'+(i===1?'':'s');ms.appendChild(o);}
+  const ds=document.getElementById('schedDom');
+  for(let d=1;d<=31;d++){const o=document.createElement('option');o.value=d;o.textContent=d;ds.appendChild(o);}
+})();
+
+/* ── Chips: roles ── */
+function addRoleChip(val){
+  val=(val||'').trim().replace(/,$/,'').trim();
+  if(!val||roleChips.includes(val))return;
+  roleChips.push(val);renderRoleChips();markDirty();
+}
+function renderRoleChips(){
+  const wrap=document.getElementById('roleChipsWrap');
+  const inp=document.getElementById('roleInput');
+  wrap.querySelectorAll('.chip').forEach(c=>c.remove());
+  roleChips.forEach((r,i)=>{
+    const c=document.createElement('span');c.className='chip';
+    c.innerHTML=esc(r)+'<span class="chip-x" onclick="removeRoleChip('+i+')">×</span>';
+    wrap.insertBefore(c,inp);
+  });
+}
+function removeRoleChip(i){roleChips.splice(i,1);renderRoleChips();markDirty();}
+document.getElementById('roleInput').addEventListener('keydown',e=>{
+  if(e.key==='Enter'||e.key===','){e.preventDefault();addRoleChip(e.target.value);e.target.value='';}
+});
+
+/* ── Chips: locations ── */
+function addLocationChip(val){
+  if(!val||locationChips.includes(val)||locationChips.length>=3)return;
+  locationChips.push(val);renderLocationChips();markDirty();
+}
+function renderLocationChips(){
+  const wrap=document.getElementById('locationChipsWrap');
+  wrap.innerHTML=locationChips.map((l,i)=>`<span class="chip">${esc(l)}<span class="chip-x" onclick="removeLocChip(${i})">×</span></span>`).join('');
+}
+function removeLocChip(i){locationChips.splice(i,1);renderLocationChips();markDirty();}
+
+/* ── Location dropdown ── */
+function filterLocs(q){
+  const dd=document.getElementById('locDD');
+  const filtered=ALL_CITIES.filter(c=>!q||c.toLowerCase().includes(q.toLowerCase()));
+  dd.innerHTML=filtered.map(c=>`<div class="loc-opt" onmousedown="addLocationChip('${c.replace(/'/g,"\\'")}');document.getElementById('locationSearch').value='';closeLocDD()">${esc(c)}</div>`).join('');
+}
+function openLocDD(){filterLocs(document.getElementById('locationSearch').value);document.getElementById('locDD').classList.add('open');}
+function closeLocDD(){document.getElementById('locDD').classList.remove('open');}
+
+/* ── Education entries ── */
+function makeYearOpts(from,to,extra=''){
+  let h=`<option value="">Year</option>`;
+  for(let y=to;y>=from;y--)h+=`<option value="${y}">${y}</option>`;
+  if(extra)h+=`<option value="${extra}">${extra}</option>`;
+  return h;
+}
+function makeMonthOpts(){
+  const m=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  return '<option value="">Month</option>'+m.map((n,i)=>`<option value="${i+1}">${n}</option>`).join('');
+}
+function addEduEntry(d={}){
+  if(eduEntries.length>=5)return;
+  const id=++eduCounter;eduEntries.push(id);
+  const el=document.createElement('div');el.className='entry';el.id='edu-'+id;
+  el.innerHTML=`
+    <div class="entry-hdr"><span class="entry-num">Education #${id}</span>${eduEntries.length>1?`<button class="btn-sm-ghost" onclick="removeEdu(${id})">Remove</button>`:''}</div>
+    <div class="form-row"><div class="fg"><label class="fl">Institution</label><input class="fi" id="edu-inst-${id}" value="${esc(d.institution||'')}" placeholder="University / College"/></div>
+      <div class="fg"><label class="fl">Degree</label><input class="fi" id="edu-deg-${id}" value="${esc(d.degree||'')}" placeholder="e.g. B.Tech, MBA"/></div></div>
+    <div class="fg"><label class="fl">Field of Study</label><input class="fi" id="edu-field-${id}" value="${esc(d.field||'')}" placeholder="e.g. Computer Science"/></div>
+    <div class="form-row">
+      <div class="fg"><label class="fl">Start Year</label><select class="fselect" id="edu-sy-${id}">${makeYearOpts(1960,2030)}</select></div>
+      <div class="fg"><label class="fl">End Year</label><select class="fselect" id="edu-ey-${id}">${makeYearOpts(1960,2030,'Ongoing')}</select></div>
+    </div>
+    <div class="form-row">
+      <div class="fg"><label class="fl">Grade</label><input class="fi" id="edu-grade-${id}" value="${esc(d.grade||'')}" placeholder="e.g. 8.5 / 85%"/></div>
+      <div class="fg"><label class="fl">Grade Type</label>
+        <div class="grade-toggle" id="gt-${id}">
+          <button type="button" class="${d.gradeType==='cgpa'?'':'active'}" onclick="setGT(${id},'pct')">%</button>
+          <button type="button" class="${d.gradeType==='cgpa'?'active':''}" onclick="setGT(${id},'cgpa')">CGPA</button>
+        </div>
+      </div>
+    </div>`;
+  document.getElementById('eduList').appendChild(el);
+  if(d.startYear)sv('edu-sy-'+id,d.startYear);
+  if(d.endYear)sv('edu-ey-'+id,d.endYear);
+  document.getElementById('btnAddEdu').disabled=eduEntries.length>=5;
+}
+window.removeEdu=function(id){eduEntries=eduEntries.filter(x=>x!==id);const e=document.getElementById('edu-'+id);if(e)e.remove();document.getElementById('btnAddEdu').disabled=false;};
+window.setGT=function(id,type){document.querySelectorAll(`#gt-${id} button`).forEach(b=>b.classList.toggle('active',b.textContent.toLowerCase().includes(type==='cgpa'?'cgpa':'%')));};
+function getEduData(){
+  return eduEntries.map(id=>({
+    institution:v('edu-inst-'+id),degree:v('edu-deg-'+id),field:v('edu-field-'+id),
+    startYear:v('edu-sy-'+id),endYear:v('edu-ey-'+id),grade:v('edu-grade-'+id),
+    gradeType:((document.querySelector(`#gt-${id} button.active`)||{}).textContent||'').toLowerCase().includes('cgpa')?'cgpa':'percentage'
+  }));
+}
+
+/* ── Experience entries ── */
+function addExpEntry(d={}){
+  if(expEntries.length>=8)return;
+  const id=++expCounter;expEntries.push(id);
+  const isCur=d.isCurrent||d.current||false;
+  const el=document.createElement('div');el.className='entry';el.id='exp-'+id;
+  el.innerHTML=`
+    <div class="entry-hdr"><span class="entry-num">Experience #${id}</span>${expEntries.length>1?`<button class="btn-sm-ghost" onclick="removeExp(${id})">Remove</button>`:''}</div>
+    <div class="form-row">
+      <div class="fg"><label class="fl">Company <span class="req">*</span></label><input class="fi" id="exp-co-${id}" value="${esc(d.company||'')}" placeholder="Company name"/></div>
+      <div class="fg"><label class="fl">Job Title <span class="req">*</span></label><input class="fi" id="exp-ti-${id}" value="${esc(d.title||'')}" placeholder="e.g. Senior PM"/></div>
+    </div>
+    <div class="form-row">
+      <div class="fg"><label class="fl">Start Month</label><select class="fselect" id="exp-sm-${id}">${makeMonthOpts()}</select></div>
+      <div class="fg"><label class="fl">Start Year</label><select class="fselect" id="exp-sy-${id}">${makeYearOpts(1990,2030)}</select></div>
+    </div>
+    <div class="fg"><label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:12px;"><input type="checkbox" id="exp-cur-${id}" ${isCur?'checked':''} onchange="toggleCur(${id})" style="width:auto;accent-color:var(--primary,#3b82f6);"> Currently working here</label></div>
+    <div class="form-row" id="exp-end-row-${id}" style="${isCur?'opacity:.35;pointer-events:none;':''}">
+      <div class="fg"><label class="fl">End Month</label><select class="fselect" id="exp-em-${id}" ${isCur?'disabled':''}>${makeMonthOpts()}</select></div>
+      <div class="fg"><label class="fl">End Year</label><select class="fselect" id="exp-ey-${id}" ${isCur?'disabled':''}>${makeYearOpts(1990,2030)}</select></div>
+    </div>
+    <div class="fg"><label class="fl">Description</label><textarea class="fta" id="exp-desc-${id}" placeholder="Brief description (optional)" rows="2">${esc(d.description||'')}</textarea></div>`;
+  document.getElementById('expList').appendChild(el);
+  if(d.startMonth)sv('exp-sm-'+id,d.startMonth);
+  if(d.startYear)sv('exp-sy-'+id,d.startYear);
+  if(!isCur){if(d.endMonth)sv('exp-em-'+id,d.endMonth);if(d.endYear)sv('exp-ey-'+id,d.endYear);}
+  document.getElementById('btnAddExp').disabled=expEntries.length>=8;
+}
+window.removeExp=function(id){expEntries=expEntries.filter(x=>x!==id);const e=document.getElementById('exp-'+id);if(e)e.remove();document.getElementById('btnAddExp').disabled=false;};
+window.toggleCur=function(id){
+  const cb=document.getElementById('exp-cur-'+id);
+  const row=document.getElementById('exp-end-row-'+id);
+  const em=document.getElementById('exp-em-'+id);
+  const ey=document.getElementById('exp-ey-'+id);
+  if(cb.checked){row.style.opacity='.35';row.style.pointerEvents='none';em.disabled=true;em.value='';ey.disabled=true;ey.value='';}
+  else{row.style.opacity='';row.style.pointerEvents='';em.disabled=false;ey.disabled=false;}
+};
+function getExpData(){
+  return expEntries.map(id=>({
+    company:v('exp-co-'+id),title:v('exp-ti-'+id),
+    startMonth:v('exp-sm-'+id),startYear:v('exp-sy-'+id),
+    endMonth:v('exp-em-'+id),endYear:v('exp-ey-'+id),
+    isCurrent:!!(document.getElementById('exp-cur-'+id)||{}).checked,
+    description:v('exp-desc-'+id)
+  }));
+}
+
+/* ── CV Upload ── */
+async function pickCV(){
+  if(!window.api)return;
+  const spinner=document.getElementById('cvSpinner'),msgEl=document.getElementById('cvSpinnerMsg');
+  const msgs=['Reading your CV...','Extracting your details...','Almost there...'];
+  let mi=0;
+  const iv=setInterval(()=>{mi=(mi+1)%msgs.length;msgEl.textContent=msgs[mi];},1200);
+  spinner.classList.add('vis');msgEl.textContent=msgs[0];
+  try{
+    const fd=await window.api.pickCVFile();
+    if(!fd){clearInterval(iv);spinner.classList.remove('vis');return;}
+    const result=await window.api.parseCV(fd);
+    clearInterval(iv);spinner.classList.remove('vis');
+    if(!result||!result.success){showToast('Could not parse CV. Check format.','e');return;}
+    await window.api.saveProfile({cv:{filename:fd.filename,uploadedAt:new Date().toISOString(),rawText:result.rawText||'',skills:(result.extracted&&result.extracted.skills)||[]}});
+    document.getElementById('cvStatusName').textContent='📄 '+fd.filename;
+    document.getElementById('cvUploadDate').textContent='Uploaded '+new Date().toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'});
+    const hasData=document.getElementById('firstName').value.trim().length>0;
+    if(hasData){
+      if(!confirm('Profile already has data.\n\nOK = Re-parse CV and overwrite all fields\nCancel = Keep existing profile, only update CV file')){
+        showToast('CV file updated. Profile data unchanged.');return;
+      }
+    }
+    if(result.extracted){
+      const ext=result.extracted;
+      const pe=ext.personal||{};
+      if(pe.firstName)sv('firstName',pe.firstName);if(pe.lastName)sv('lastName',pe.lastName);
+      if(pe.email)sv('personalEmail',pe.email);if(pe.phone)sv('phone',pe.phone);
+      if(pe.linkedinUrl)sv('linkedinUrl',pe.linkedinUrl);if(pe.portfolioUrl)sv('portfolioUrl',pe.portfolioUrl);
+      const ad=ext.address||{};
+      if(ad.line1)sv('addr1',ad.line1);if(ad.line2)sv('addr2',ad.line2);
+      if(ad.city)sv('city',ad.city);if(ad.state)sv('state',ad.state);
+      if(ad.country)sv('country',ad.country);if(ad.pincode)sv('pincode',ad.pincode);
+      if(ext.education&&ext.education.length){document.getElementById('eduList').innerHTML='';eduEntries=[];eduCounter=0;ext.education.slice(0,5).forEach(e=>addEduEntry(e));}
+      if(ext.experience&&ext.experience.length){document.getElementById('expList').innerHTML='';expEntries=[];expCounter=0;ext.experience.slice(0,8).forEach(e=>addExpEntry(e));}
+    }
+    showToast('✅ CV parsed. Review all fields, then save.');
+    markDirty();
+  }catch(e){clearInterval(iv);spinner.classList.remove('vis');showToast('CV error: '+e.message,'e');}
+}
+
+/* ── Collect & Save ── */
+function collectData(){
+  const sf=(document.querySelector('input[name="sf"]:checked')||{}).value||'daily';
+  return{
+    liEmail:v('liEmail'),liPassword:v('liPassword'),
+    profileCategory,
+    firstName:v('firstName'),lastName:v('lastName'),email:v('personalEmail'),
+    phone:v('phone'),countryCode:v('countryCode'),linkedinUrl:v('linkedinUrl'),portfolioUrl:v('portfolioUrl'),
+    addr1:v('addr1'),addr2:v('addr2'),city:v('city'),state:v('state'),country:v('country'),pincode:v('pincode'),
+    education:getEduData(),experience:getExpData(),
+    targetRoles:[...roleChips],locationPrefs:[...locationChips],
+    expYears:v('expYears'),expMonths:v('expMonths'),
+    currentCTC:v('currentCTC'),expectedCTC:v('expectedCTC'),
+    noticePeriodVal:v('noticePeriodVal'),noticePeriodUnit:v('noticePeriodUnit'),
+    negotiable:negotiableVal,joinSoon:v('joinSoon'),
+    willingToTravel:travelVal,travelPct:v('travelPct'),
+    schedEnabled,schedFreq:sf,schedTime:v('schedTime'),schedDow:v('schedDow'),schedDom:v('schedDom')
+  };
+}
+
+window.saveAll=async function(silent=false){
+  if(!window.api)return;
+  try{
+    await window.api.saveProfile(collectData());
+    clearDirty();
+    if(!silent)showToast('✅ Profile saved!');
+  }catch(e){if(!silent)showToast('Error: '+e.message,'e');}
+};
+
+window.onbeforeunload=()=>{if(dirty)window.saveAll(true);};
+
+/* ── Smooth scroll for section links ── */
+document.querySelectorAll('.section-jump').forEach(a=>{
+  a.addEventListener('click',e=>{
+    e.preventDefault();
+    const t=document.querySelector(a.getAttribute('href'));
+    if(t)t.scrollIntoView({behavior:'smooth',block:'start'});
+  });
+});
+
+/* ── Scrollspy: highlight the section-jump link for whichever section is
+   currently in view, so the left panel always shows where you are. ── */
+(function(){
+  const navLinks = Array.from(document.querySelectorAll('.section-jump'));
+  const sections = Array.from(document.querySelectorAll('.sec[id]'));
+  const scrollRoot = document.querySelector('.content');
+  if (!sections.length || !navLinks.length) return;
+
+  function setActive(id){
+    navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#'+id));
+  }
+
+  const observer = new IntersectionObserver((entries) => {
+    const visible = entries
+      .filter(e => e.isIntersecting)
+      .sort((a,b) => a.boundingClientRect.top - b.boundingClientRect.top);
+    if (visible.length) setActive(visible[0].target.id);
+  }, { root: scrollRoot || null, rootMargin: '-8% 0px -75% 0px', threshold: [0, 0.1, 1] });
+
+  sections.forEach(s => observer.observe(s));
+  setActive(sections[0].id);  // highlight first section on load
+})();
+
+/* ── Prefill from saved profile ── */
+function prefill(p){
+  if(!p)return;
+  try {
+  const li=p.linkedin||{};
+  if(li.email)sv('liEmail',li.email);
+  if(li.password)sv('liPassword',li.password);
+  // Profile category — pass silent=true so markDirty is NOT called during initial load
+  if(p.profileCategory) setCat(p.profileCategory, true);
+  if(p.jobSearchStatus){}  // no field on this page, just informational
+  const pe=p.personal||{};
+  sv('firstName',pe.firstName);sv('lastName',pe.lastName);sv('personalEmail',pe.email);
+  sv('phone',pe.phone);if(pe.phoneCountryCode)sv('countryCode',pe.phoneCountryCode);
+  sv('linkedinUrl',pe.linkedinUrl);sv('portfolioUrl',pe.portfolioUrl);
+  const ad=p.address||{};
+  sv('addr1',ad.line1);sv('addr2',ad.line2);sv('city',ad.city);
+  sv('state',ad.state);if(ad.country)sv('country',ad.country);sv('pincode',ad.pincode);
+  if(p.education&&p.education.length){document.getElementById('eduList').innerHTML='';eduEntries=[];eduCounter=0;p.education.slice(0,5).forEach(e=>addEduEntry(e));}
+  if(p.experience&&p.experience.length){document.getElementById('expList').innerHTML='';expEntries=[];expCounter=0;p.experience.slice(0,8).forEach(e=>addExpEntry({...e,current:e.isCurrent||e.current}));}
+  const pr=p.preferences||{};
+  if(pr.targetRoles&&pr.targetRoles.length){roleChips=[];pr.targetRoles.forEach(r=>addRoleChip(r));}
+  if(pr.locations&&pr.locations.length){locationChips=[];pr.locations.forEach(l=>addLocationChip(l));}
+  sv('expYears',pr.experienceYears);sv('expMonths',pr.experienceMonths);
+  sv('currentCTC',pr.currentCTC);sv('expectedCTC',pr.expectedCTC);
+  sv('noticePeriodVal',pr.noticePeriodValue);sv('noticePeriodUnit',pr.noticePeriodUnit);
+  if(pr.noticePeriodNegotiable!==undefined)setYN('negotiableToggle',pr.noticePeriodNegotiable?'yes':'no');
+  sv('joinSoon',pr.joiningAvailability);
+  if(pr.willingToTravel!==undefined){setYN('travelToggle',pr.willingToTravel?'yes':'no');toggleTravelPct();}
+  sv('travelPct',pr.travelPercentage);
+  const sc=p.schedule||{};
+  if(sc.enabled){document.getElementById('schedEnabled').checked=true;toggleSched();}
+  if(sc.frequency){const r=document.querySelector(`input[name="sf"][value="${sc.frequency}"]`);if(r){r.checked=true;r.dispatchEvent(new Event('change'));}}
+  sv('schedTime',sc.time);sv('schedDow',sc.dayOfWeek);sv('schedDom',sc.dayOfMonth);
+  const cv=p.cv||{};
+  if(cv.filename){document.getElementById('cvStatusName').textContent='📄 '+cv.filename;
+    if(cv.uploadedAt)document.getElementById('cvUploadDate').textContent='Uploaded '+new Date(cv.uploadedAt).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'});}
+  } catch(prefillErr) { console.warn('Prefill error (non-fatal):', prefillErr); }
+}
+
+/* ── Add address validation ── */
+['addr1','addr2','city','state','country','pincode'].forEach(id=>{
+  const el=document.getElementById(id);if(!el)return;
+  el.addEventListener('input',()=>{if(/["'<>\/\\|{}*]/.test(el.value)){el.style.borderColor='#ef4444';}else{el.style.borderColor='';}});
+});
+
+/* ── Add change listeners for dirty flag ── */
+document.querySelectorAll('.fi,.fselect,.fta').forEach(el=>el.addEventListener('change',markDirty));
+
+/* ── Init ── */
+(async()=>{
+  addEduEntry();addExpEntry();
+  filterLocs('');
+  if(!window.api)return;
+  try{
+    const p=await window.api.getProfile();
+    if(p)prefill(p);
+  }catch(e){console.warn('Profile load error:',e);}
+})();
+</script>
+</body>
+</html>

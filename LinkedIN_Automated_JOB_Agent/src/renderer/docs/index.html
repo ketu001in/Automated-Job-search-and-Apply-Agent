@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Help &amp; Documentation — Nexora</title>
+<link rel="stylesheet" href="../shared/styles.css"/>
+<style>
+html,body{height:100%;overflow:hidden;background:var(--bg);}
+body{display:flex;font-family:var(--font);color:var(--text);}
+
+.sidebar{width:240px;min-width:240px;background:var(--sidebar-bg);display:flex;flex-direction:column;height:100vh;overflow:hidden;border-right:1px solid rgba(255,255,255,0.05);}
+.sidebar-brand{padding:18px 16px 14px;border-bottom:1px solid rgba(255,255,255,0.06);}
+.sidebar-brand .name{font-size:15px;font-weight:800;color:#f1f5f9;letter-spacing:-.01em;}
+.sidebar-brand .sub{font-size:10px;color:var(--text-muted);margin-top:2px;}
+.sidebar-nav{flex:1;padding:10px 0;overflow-y:auto;}
+.nav-link{display:block;padding:9px 18px;font-size:12.5px;font-weight:600;color:#9aa0b8;text-decoration:none;border-left:3px solid transparent;transition:.15s;cursor:pointer;}
+.nav-link:hover{color:#fff;border-left-color:var(--primary);background:rgba(79,142,247,0.08);}
+.nav-link.active{color:#fff;font-weight:700;background:rgba(79,142,247,0.18);border-left-color:var(--primary);}
+.sidebar-footer{padding:12px 18px;border-top:1px solid rgba(255,255,255,0.06);color:rgba(255,255,255,0.18);font-size:10px;}
+.back-btn{display:flex;align-items:center;gap:6px;margin:10px 14px 0;padding:7px 12px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:7px;font-size:11px;font-weight:600;color:var(--text);cursor:pointer;}
+.back-btn:hover{background:rgba(255,255,255,0.09);}
+
+.main{flex:1;display:flex;flex-direction:column;height:100vh;overflow:hidden;}
+.page-header{padding:18px 28px 14px;border-bottom:1px solid var(--border);background:var(--card);flex-shrink:0;}
+.page-header h1{font-size:19px;font-weight:800;}
+.page-header p{font-size:11.5px;color:var(--text-muted);margin-top:3px;}
+.content{flex:1;overflow-y:auto;padding:22px 32px 60px;max-width:760px;}
+
+.topic{margin-bottom:34px;scroll-margin-top:14px;}
+.topic.flash{animation:flashHL 1.8s ease;}
+@keyframes flashHL{0%{box-shadow:0 0 0 2px var(--primary),0 0 24px rgba(79,142,247,.45);}100%{box-shadow:none;}}
+.topic h2{font-size:16px;font-weight:800;color:#fff;margin-bottom:4px;display:flex;align-items:center;gap:8px;}
+.topic .topic-icon{font-size:17px;}
+.topic .topic-sub{font-size:11.5px;color:var(--text-muted);margin-bottom:14px;}
+.topic-body{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:18px 20px;}
+.topic-body h3{font-size:12.5px;font-weight:700;color:var(--primary);text-transform:uppercase;letter-spacing:.04em;margin:14px 0 8px;}
+.topic-body h3:first-child{margin-top:0;}
+.topic-body p{font-size:13px;line-height:1.7;color:#d4d6e3;margin-bottom:8px;}
+.topic-body ul{margin:6px 0 6px 20px;}
+.topic-body li{font-size:13px;line-height:1.7;color:#d4d6e3;margin-bottom:5px;}
+.topic-body b{color:#fff;}
+.topic-body code{background:var(--input-bg);padding:1px 6px;border-radius:4px;font-size:12px;color:#93c5fd;}
+
+.do-list li{color:#a7f3d0;}
+.do-list li::marker{color:var(--success);}
+.dont-list li{color:#fecaca;}
+.dont-list li::marker{color:var(--error);}
+.dos-donts-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+.dos-donts-grid .panel{border-radius:var(--radius-sm);padding:14px 16px;}
+.dos-donts-grid .do-panel{background:rgba(16,185,129,.08);border:1px solid rgba(16,185,129,.2);}
+.dos-donts-grid .dont-panel{background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.2);}
+.dos-donts-grid .panel-title{font-size:12px;font-weight:800;margin-bottom:8px;}
+.do-panel .panel-title{color:#34d399;}
+.dont-panel .panel-title{color:#f87171;}
+
+.faq-item{border-bottom:1px solid var(--border);padding:12px 0;}
+.faq-item:last-child{border-bottom:none;}
+.faq-q{font-size:13px;font-weight:700;color:#fff;margin-bottom:5px;}
+.faq-a{font-size:12.5px;color:var(--text-muted);line-height:1.6;}
+</style>
+</head>
+<body>
+
+<aside class="sidebar">
+  <div class="sidebar-brand">
+    <div class="name">📘 Nexora Help</div>
+    <div class="sub">Everything you need to operate the tool</div>
+  </div>
+  <div class="back-btn" onclick="goBack()">← Back to Nexora</div>
+  <nav class="sidebar-nav" id="navList">
+    <a class="nav-link" data-topic="getting-started">🚀 Getting Started</a>
+    <a class="nav-link" data-topic="login">👤 Logging In &amp; Profiles</a>
+    <a class="nav-link" data-topic="setup">🧭 First-Time Setup</a>
+    <a class="nav-link" data-topic="profile">📝 My Profile</a>
+    <a class="nav-link" data-topic="settings">⚙️ Settings</a>
+    <a class="nav-link" data-topic="dashboard">📊 Dashboard</a>
+    <a class="nav-link" data-topic="pause">⏸ Pause, Resume &amp; Floating Control</a>
+    <a class="nav-link" data-topic="dos-donts">✅ Do's &amp; Don'ts</a>
+    <a class="nav-link" data-topic="faq">❓ FAQ</a>
+  </nav>
+  <div class="sidebar-footer">v1.0.0 · Nexora · Bosket's Tech Ventures</div>
+</aside>
+
+<div class="main">
+  <div class="page-header">
+    <h1>Help &amp; Documentation</h1>
+    <p>Press <b>F1</b> anywhere in Nexora to jump straight to that screen's section here.</p>
+  </div>
+
+  <div class="content" id="content">
+
+    <section class="topic" id="topic-getting-started">
+      <h2><span class="topic-icon">🚀</span> Getting Started</h2>
+      <div class="topic-sub">What Nexora is and how a typical session flows</div>
+      <div class="topic-body">
+        <p>Nexora automates applying to LinkedIn jobs through the <b>Easy Apply</b> button, using the profile and preferences you save in the tool. It runs entirely on your own computer — there is no server, no subscription, and no data sent anywhere except to LinkedIn itself.</p>
+        <h3>Typical flow</h3>
+        <ul>
+          <li><b>Login screen</b> — pick your profile card, or create a new one.</li>
+          <li><b>First time only:</b> a short setup wizard collects your details.</li>
+          <li><b>Dashboard</b> — click <code>Run Now</code> whenever you want Nexora to search and apply.</li>
+          <li><b>My Profile</b> — update your details any time after setup.</li>
+        </ul>
+        <p>Multiple people can use Nexora on the same Windows PC — each person's data, LinkedIn login session, and application history stay completely separate.</p>
+      </div>
+    </section>
+
+    <section class="topic" id="topic-login">
+      <h2><span class="topic-icon">👤</span> Logging In &amp; Profiles</h2>
+      <div class="topic-sub">The screen you see every time Nexora starts</div>
+      <div class="topic-body">
+        <h3>What you'll see</h3>
+        <ul>
+          <li>A card for every person who has used Nexora on this computer, showing their name and a masked email.</li>
+          <li>Click a card to log in instantly — your saved profile, preferences, and report history load right away.</li>
+          <li><b>Create new profile</b> — enter a name and LinkedIn email to set up a brand new, separate profile.</li>
+        </ul>
+        <h3>Switching between profiles</h3>
+        <ul>
+          <li><b>⇄ Switch</b> (on the Dashboard) — returns to this login screen so a different person can log in.</li>
+          <li><b>✓ Sign Off</b> — also returns to the login screen. Use this when you're done for the day; your data is saved automatically either way.</li>
+        </ul>
+        <p>Every LinkedIn account also gets its own private Chrome session — switching users never reuses someone else's LinkedIn login, and you never need to log out of LinkedIn manually.</p>
+      </div>
+    </section>
+
+    <section class="topic" id="topic-setup">
+      <h2><span class="topic-icon">🧭</span> First-Time Setup</h2>
+      <div class="topic-sub">Shown exactly once, the first time a new profile is created</div>
+      <div class="topic-body">
+        <p>The setup wizard walks through 10 short steps: LinkedIn credentials, job search status, IT / Non-IT category, CV upload, personal details, address, education, experience, job preferences, and schedule.</p>
+        <h3>About the CV upload step</h3>
+        <p>Uploading your CV auto-fills most of the following steps for you. <b>Always review every step before finishing</b> — automatic extraction is a head start, not a guarantee of accuracy.</p>
+        <h3>After you finish</h3>
+        <p>Once you click <b>Save &amp; Finish</b>, setup is complete for that profile — you will never see the wizard again. All future changes are made in <b>My Profile</b>, which is edit-only by design.</p>
+      </div>
+    </section>
+
+    <section class="topic" id="topic-profile">
+      <h2><span class="topic-icon">📝</span> My Profile</h2>
+      <div class="topic-sub">The only place you edit your data after setup</div>
+      <div class="topic-body">
+        <h3>Sections</h3>
+        <p>Use the left panel to jump between: IT/Non-IT Category, LinkedIn, CV/Resume, Personal, Address, Education, Experience, Job Preferences, and Travel &amp; Schedule. The section you're currently viewing is highlighted as you scroll.</p>
+        <h3>Critical: values come only from what you enter here</h3>
+        <p>Fields like <b>Notice Period</b>, <b>Current CTC</b>, and <b>Expected CTC</b> are used <b>exactly</b> as you enter them — Nexora never substitutes a default or made-up value. If a field is left blank, Nexora leaves the matching LinkedIn question blank too rather than guessing, so it's worth keeping these filled in before running.</p>
+        <h3>Changing your LinkedIn email here</h3>
+        <p>If you change your LinkedIn email in <b>Settings</b> (credentials live there), Nexora checks whether it recognizes that email — see the Settings section below.</p>
+      </div>
+    </section>
+
+    <section class="topic" id="topic-settings">
+      <h2><span class="topic-icon">⚙️</span> Settings</h2>
+      <div class="topic-sub">LinkedIn credentials and run behavior</div>
+      <div class="topic-body">
+        <h3>LinkedIn credentials</h3>
+        <p>If you change the email to one Nexora has seen before, it offers to switch you to that saved profile. If it's a brand-new email, it offers to create a fresh profile — your current profile is left untouched either way.</p>
+        <h3>Run behavior</h3>
+        <ul>
+          <li><b>Show Chrome window</b> — recommended for your first few runs so you can watch fields fill in.</li>
+          <li><b>Max applications per run</b> — a safety cap so a single run doesn't apply to an unbounded number of jobs.</li>
+          <li><b>Minimum compatibility score</b> — jobs scoring below this are skipped, not applied to.</li>
+          <li><b>Job search time window</b> — how recently a job must have been posted (24 hours / 3 days / week / month).</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="topic" id="topic-dashboard">
+      <h2><span class="topic-icon">📊</span> Dashboard</h2>
+      <div class="topic-sub">Where you start runs and review results</div>
+      <div class="topic-body">
+        <h3>Running the agent</h3>
+        <p><b>Run Now</b> starts a search-and-apply cycle using your current My Profile data. All stats shown are <b>per-user</b> — you only ever see your own counts, never another profile's.</p>
+        <h3>Reading the results</h3>
+        <ul>
+          <li><b>All Applied Jobs</b> — click the "Total Applied" number to jump straight to the list; export as CSV, XLS, or PDF.</li>
+          <li><b>Skipped Jobs</b> — jobs that scored below your minimum compatibility threshold.</li>
+          <li><b>📌 Found These Jobs — Apply Manually</b> — jobs that matched your profile but don't have LinkedIn's Easy Apply button. Click the title to open and apply directly on LinkedIn.</li>
+          <li><b>🧠 Self-learning active</b> banner — shows how many form questions Nexora has learned answers to over time, across all your runs.</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="topic" id="topic-pause">
+      <h2><span class="topic-icon">⏸</span> Pause, Resume &amp; Floating Control</h2>
+      <div class="topic-sub">Staying in control while a run is in progress</div>
+      <div class="topic-body">
+        <h3>The floating control bar</h3>
+        <p>While a run is active, a small window appears in the bottom-right of your screen, always on top of Chrome — so you never have to switch windows to manage the run.</p>
+        <ul>
+          <li><b>⏸ Pause</b> / hotkey <code>Ctrl+Alt+P</code> — pauses after the current job finishes (never mid-fill). Correct any field directly in Chrome while paused.</li>
+          <li><b>▶ Resume</b> / same hotkey — continues exactly where it left off.</li>
+          <li><b>📊 Dashboard ↔ 🌐 Return to Chrome</b> — this button swaps automatically depending on which window currently has focus, always offering the other one.</li>
+          <li><b>⏹ Force Stop</b> — only for when the agent appears frozen. Safely closes the browser and resets everything to Idle.</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="topic" id="topic-dos-donts">
+      <h2><span class="topic-icon">✅</span> Do's &amp; Don'ts</h2>
+      <div class="topic-sub">Quick rules of thumb for reliable runs</div>
+      <div class="topic-body">
+        <div class="dos-donts-grid">
+          <div class="panel do-panel">
+            <div class="panel-title">DO</div>
+            <ul class="do-list">
+              <li>Keep My Profile fully filled in — especially Notice Period and CTC — before running.</li>
+              <li>Watch the first few runs in the visible Chrome window.</li>
+              <li>Use Pause the moment you spot a wrong field, rather than letting it continue.</li>
+              <li>Keep your LinkedIn password current in Settings.</li>
+            </ul>
+          </div>
+          <div class="panel dont-panel">
+            <div class="panel-title">DON'T</div>
+            <ul class="dont-list">
+              <li>Don't run two profiles applying as the same LinkedIn account at once.</li>
+              <li>Don't force-close Chrome if you can help it — use Pause or Force Stop instead.</li>
+              <li>Don't expect Nexora to apply where there's no Easy Apply button — those go to the manual list.</li>
+              <li>Don't leave CTC/Notice Period blank and expect a sensible default — Nexora leaves those questions blank too.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="topic" id="topic-faq">
+      <h2><span class="topic-icon">❓</span> Frequently Asked Questions</h2>
+      <div class="topic-sub">Common questions, answered plainly</div>
+      <div class="topic-body">
+        <div class="faq-item">
+          <div class="faq-q">Will Nexora apply to jobs I'm not qualified for?</div>
+          <div class="faq-a">No — every job is scored against your profile and skipped if it's below your Minimum Compatibility Score (set in Settings).</div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-q">What happens to LinkedIn questions that aren't in my profile?</div>
+          <div class="faq-a">Nexora checks its self-learning question bank (built from your own past answers) first, then leaves the field blank rather than guessing.</div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-q">Can two people use Nexora on the same computer?</div>
+          <div class="faq-a">Yes — each person gets their own login card, and their profile, LinkedIn session, and applied-jobs history stay completely separate.</div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-q">I changed my LinkedIn password — do I need to update anything?</div>
+          <div class="faq-a">Yes, update it in Settings or My Profile, otherwise the next run will fail to log in.</div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-q">Where is my data stored?</div>
+          <div class="faq-a">Entirely on your own computer, in your Windows user profile folder — never on a server.</div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-q">The agent looks stuck — what do I do?</div>
+          <div class="faq-a">Use <b>⏹ Force Stop</b> on the floating control bar or Dashboard. It safely closes the browser and resets to Idle.</div>
+        </div>
+      </div>
+    </section>
+
+  </div>
+</div>
+
+<script>
+function goBack(){
+  const params = new URLSearchParams(window.location.search);
+  const from = params.get('from') || 'dashboard';
+  if (window.api && window.api.navigate) window.api.navigate(from);
+  else window.history.back();
+}
+
+const links = Array.from(document.querySelectorAll('.nav-link'));
+links.forEach(a => {
+  a.addEventListener('click', () => scrollToTopic(a.dataset.topic));
+});
+
+function scrollToTopic(topic, flash){
+  const el = document.getElementById('topic-' + topic);
+  if (!el) return;
+  el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  setActiveLink(topic);
+  if (flash) {
+    el.classList.add('flash');
+    setTimeout(() => el.classList.remove('flash'), 1800);
+  }
+}
+
+function setActiveLink(topic){
+  links.forEach(a => a.classList.toggle('active', a.dataset.topic === topic));
+}
+
+// Scrollspy
+const sections = Array.from(document.querySelectorAll('.topic[id]'));
+const scrollRoot = document.querySelector('.content');
+const observer = new IntersectionObserver((entries) => {
+  const visible = entries.filter(e => e.isIntersecting).sort((a,b) => a.boundingClientRect.top - b.boundingClientRect.top);
+  if (visible.length) setActiveLink(visible[0].target.id.replace('topic-',''));
+}, { root: scrollRoot, rootMargin: '-8% 0px -75% 0px', threshold: [0, 0.1, 1] });
+sections.forEach(s => observer.observe(s));
+
+// Deep-link via ?topic=xxx (used by the F1 context-help hotkey)
+const params = new URLSearchParams(window.location.search);
+const topic = params.get('topic');
+if (topic && document.getElementById('topic-' + topic)) {
+  setTimeout(() => scrollToTopic(topic, true), 80);
+} else {
+  setActiveLink('getting-started');
+}
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') goBack();
+});
+</script>
+</body>
+</html>

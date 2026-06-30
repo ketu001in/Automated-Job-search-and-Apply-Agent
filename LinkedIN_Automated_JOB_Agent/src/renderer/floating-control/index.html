@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<title>Nexora Control</title>
+<style>
+  html,body{margin:0;padding:0;background:transparent;overflow:hidden;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;}
+  .bar{
+    -webkit-app-region: drag;
+    width:360px;height:176px;margin:8px;
+    background:linear-gradient(160deg,#1c1c28fa,#14141efa);
+    border:1px solid rgba(79,142,247,0.4);
+    border-radius:14px;
+    box-shadow:0 8px 30px rgba(0,0,0,0.6),0 0 0 1px rgba(79,142,247,0.1);
+    padding:14px 16px;
+    color:#f3f4f8;
+    box-sizing:border-box;
+  }
+  .row{display:flex;align-items:center;justify-content:space-between;-webkit-app-region:no-drag;}
+  .brand{display:flex;align-items:center;gap:6px;font-weight:800;font-size:12.5px;letter-spacing:.05em;color:#5b9bff;}
+  .brand .dot{width:6px;height:6px;border-radius:50%;background:#5b9bff;flex-shrink:0;}
+  .close-btn{-webkit-app-region:no-drag;cursor:pointer;color:#9499b3;font-size:14px;padding:2px 7px;border-radius:5px;}
+  .close-btn:hover{background:rgba(255,255,255,.1);color:#fff;}
+  .status-line{display:flex;align-items:center;gap:8px;margin-top:11px;}
+  .status-dot{width:9px;height:9px;border-radius:50%;background:#6b7280;flex-shrink:0;}
+  .status-dot.running{background:#5b9bff;animation:pulse 1.2s infinite;}
+  .status-dot.paused{background:#f59e0b;}
+  @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.35;}}
+  .status-text{font-size:13.5px;font-weight:700;color:#fff;}
+  .job-line{margin-top:6px;font-size:12px;color:#b3b7cc;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .btn-row{display:flex;gap:7px;margin-top:13px;-webkit-app-region:no-drag;}
+  button{border:none;border-radius:8px;padding:9px 0;font-size:12.5px;font-weight:700;cursor:pointer;transition:.15s;}
+  .btn-pause{flex:2;background:linear-gradient(135deg,#f59e0b,#d97706);color:#fff;}
+  .btn-pause:hover:not(:disabled){filter:brightness(1.1);}
+  .btn-resume{flex:2;background:linear-gradient(135deg,#10b981,#059669);color:#fff;}
+  .btn-resume:hover:not(:disabled){filter:brightness(1.1);}
+  .btn-bring{flex:1.1;background:rgba(255,255,255,.1);color:#e3e5f0;border:1px solid rgba(255,255,255,.14);}
+  .btn-bring:hover{background:rgba(255,255,255,.16);}
+  .btn-skip{flex:1;background:rgba(248,113,113,.14);color:#fca5a5;border:1px solid rgba(248,113,113,.28);}
+  .btn-skip:hover:not(:disabled){background:rgba(248,113,113,.22);}
+  button:disabled{opacity:.4;cursor:not-allowed;filter:none !important;}
+  .row2{display:flex;align-items:center;justify-content:space-between;margin-top:9px;-webkit-app-region:no-drag;}
+  .hint{font-size:10.5px;color:#9499b3;line-height:1.5;}
+  .hint b{color:#cfd2e3;}
+  .stop-link{font-size:10.5px;color:#f87171;cursor:pointer;font-weight:700;white-space:nowrap;padding-left:8px;}
+  .stop-link:hover{color:#fca5a5;text-decoration:underline;}
+</style>
+</head>
+<body>
+  <div class="bar" id="bar">
+    <div class="row">
+      <div class="brand"><span class="dot"></span> NEXORA</div>
+      <div class="close-btn" onclick="window.api.navigate('dashboard')" title="Open Dashboard">⤢</div>
+    </div>
+
+    <div class="status-line">
+      <span class="status-dot" id="statusDot"></span>
+      <span class="status-text" id="statusText">Idle</span>
+    </div>
+    <div class="job-line" id="jobLine">Waiting for next job…</div>
+
+    <div class="btn-row">
+      <button class="btn-pause" id="actionBtn" onclick="toggle()" disabled>⏸ Pause</button>
+      <button class="btn-skip" id="skipBtn" onclick="skipJob()" disabled title="Skip the job currently being applied to">⏭ Skip</button>
+      <button class="btn-bring" id="navBtn" onclick="window.api.navigate('dashboard')">📊 Dashboard</button>
+    </div>
+    <div class="row2">
+      <div class="hint">Hotkey: <b>Ctrl+Alt+P</b></div>
+      <div class="stop-link" id="stopLink" onclick="forceStop()" style="display:none;">⏹ Stuck? Force Stop</div>
+    </div>
+  </div>
+
+<script src="../shared/help.js"></script>
+<script>
+let paused = false;
+let running = false;
+let dashboardFocused = false;
+
+// Toggles the bottom button between "Dashboard" (when looking at Chrome) and
+// "Return to Chrome" (when the Dashboard window currently has focus) — so
+// there's always exactly one useful action, never a button that does nothing.
+function updateNavButton(){
+  const btn = document.getElementById('navBtn');
+  if (!btn) return;
+  if (dashboardFocused) {
+    btn.textContent = '🌐 Return to Chrome';
+    btn.onclick = () => window.api.focusChrome();
+  } else {
+    btn.textContent = '📊 Dashboard';
+    btn.onclick = () => window.api.navigate('dashboard');
+  }
+}
+
+async function toggle() {
+  const btn = document.getElementById('actionBtn');
+  btn.disabled = true;
+  try {
+    if (!paused) await window.api.pauseAgent();
+    else await window.api.resumeAgent();
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+async function skipJob() {
+  const btn = document.getElementById('skipBtn');
+  btn.disabled = true;
+  try {
+    // If currently paused, resume first so the agent's modal loop actually
+    // reaches the skip check — otherwise it stays blocked waiting for Resume.
+    if (paused) await window.api.resumeAgent();
+    await window.api.skipJob();
+  } finally {
+    setTimeout(() => { btn.disabled = !running; }, 600);
+  }
+}
+
+async function forceStop() {
+  if (!confirm('Force-stop the agent and close the browser?\n\nUse this only if the agent appears stuck.')) return;
+  document.getElementById('stopLink').textContent = 'Stopping…';
+  await window.api.forceStopAgent();
+}
+
+function render() {
+  const dot      = document.getElementById('statusDot');
+  const text     = document.getElementById('statusText');
+  const btn      = document.getElementById('actionBtn');
+  const skipBtn  = document.getElementById('skipBtn');
+  const stopLink = document.getElementById('stopLink');
+
+  if (!running) {
+    dot.className = 'status-dot';
+    text.textContent = 'Idle';
+    btn.textContent = '⏸ Pause';
+    btn.className = 'btn-pause';
+    btn.disabled = true;
+    skipBtn.disabled = true;
+    stopLink.style.display = 'none';
+  } else if (paused) {
+    dot.className = 'status-dot paused';
+    text.textContent = 'Paused — edit Chrome now';
+    btn.textContent = '▶ Resume';
+    btn.className = 'btn-resume';
+    btn.disabled = false;
+    skipBtn.disabled = false;
+    stopLink.style.display = 'block';
+  } else {
+    dot.className = 'status-dot running';
+    text.textContent = 'Running…';
+    btn.textContent = '⏸ Pause';
+    btn.className = 'btn-pause';
+    btn.disabled = false;
+    skipBtn.disabled = false;
+    stopLink.style.display = 'block';
+    stopLink.textContent = '⏹ Stuck? Force Stop';
+  }
+}
+
+if (window.api) {
+  window.api.onAgentStatus(d => {
+    running = !!d.running;
+    paused  = !!d.paused;
+    render();
+  });
+  window.api.onAgentLog(e => {
+    const jl = document.getElementById('jobLine');
+    if (jl && e.message) jl.textContent = e.message.replace(/[🚀🎉✅❌⏭️⏸️▶️📌🔍🔐👉🏁📊🔖🛑]/g, '').trim();
+  });
+  if (window.api.onFocusState) {
+    window.api.onFocusState(d => {
+      dashboardFocused = !!d.dashboardFocused;
+      updateNavButton();
+    });
+  }
+
+  // Proactively fetch the CURRENT status on load instead of relying solely on
+  // the next broadcast event — fixes the bar getting stuck on "Idle" if it
+  // missed the initial agent:status event sent right as the run started.
+  window.api.getAgentStatus().then(s => {
+    if (s) { running = !!s.running; paused = !!s.paused; render(); }
+  }).catch(() => {});
+}
+render();
+updateNavButton();
+</script>
+</body>
+</html>

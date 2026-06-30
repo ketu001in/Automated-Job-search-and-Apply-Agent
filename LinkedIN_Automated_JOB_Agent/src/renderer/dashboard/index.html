@@ -1,0 +1,845 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Dashboard — Nexora</title>
+<link rel="stylesheet" href="../shared/styles.css"/>
+<style>
+html,body{height:100%;overflow:hidden;background:#0a0a0a;}
+body{display:flex;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;color:#e2e2e2;}
+
+/* ── Sidebar ── */
+.sidebar{width:230px;min-width:230px;background:#050505;display:flex;flex-direction:column;height:100vh;overflow:hidden;border-right:1px solid rgba(255,255,255,0.05);}
+.sidebar-logo{padding:20px 16px 14px;border-bottom:1px solid rgba(255,255,255,0.05);display:flex;flex-direction:column;align-items:flex-start;gap:0;}
+.sidebar-logo img{width:140px;height:auto;filter:drop-shadow(0 0 8px rgba(59,130,246,0.4));}
+.sidebar-logo .tagline{font-size:9px;color:rgba(255,255,255,0.25);margin-top:5px;font-style:italic;letter-spacing:.04em;}
+.sidebar-logo .version-badge{display:inline-block;margin-top:6px;background:rgba(59,130,246,0.2);color:#60a5fa;border:1px solid rgba(59,130,246,0.3);font-size:9px;font-weight:700;padding:2px 8px;border-radius:999px;letter-spacing:.05em;}
+.sidebar-nav{flex:1;padding:10px 0;overflow-y:auto;}
+.nav-item{display:flex;align-items:center;gap:10px;padding:11px 18px;font-size:13px;font-weight:500;color:#6b7280;cursor:pointer;border-left:3px solid transparent;transition:all .2s;user-select:none;}
+.nav-item:hover{background:rgba(255,255,255,0.04);color:#e2e8f0;}
+.nav-item.active{background:rgba(59,130,246,0.1);color:#60a5fa;border-left-color:#3b82f6;}
+.nav-item .nav-icon{font-size:15px;width:20px;text-align:center;}
+.sidebar-cat{padding:10px 18px;margin-top:4px;}
+.sidebar-cat .cat-label{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:#2d3748;margin-bottom:6px;}
+.cat-badge{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:6px;font-size:11px;font-weight:600;}
+.cat-tech{background:rgba(59,130,246,0.12);color:#60a5fa;border:1px solid rgba(59,130,246,0.2);}
+.cat-nontech{background:rgba(245,158,11,0.12);color:#f59e0b;border:1px solid rgba(245,158,11,0.2);}
+.sidebar-footer{padding:12px 18px;border-top:1px solid rgba(255,255,255,0.05);color:#2d3748;font-size:10px;}
+
+/* ── Main ── */
+.main{flex:1;display:flex;flex-direction:column;height:100vh;overflow:hidden;background:#0d0d0d;}
+
+/* ── Top bar ── */
+.topbar{padding:12px 20px;background:rgba(8,8,8,0.97);backdrop-filter:blur(12px);border-bottom:1px solid rgba(255,255,255,0.06);flex-shrink:0;display:flex;align-items:center;justify-content:space-between;gap:16px;}
+.topbar-logo{cursor:pointer;display:flex;align-items:center;gap:0;filter:drop-shadow(0 0 8px rgba(59,130,246,0.35));transition:filter .2s;}
+.topbar-logo:hover{filter:drop-shadow(0 0 14px rgba(59,130,246,0.55));}
+.topbar-center{flex:1;display:flex;align-items:center;gap:10px;padding:0 16px;}
+.topbar-center h1{font-size:16px;font-weight:700;letter-spacing:-.02em;}
+.topbar-center .subtitle{font-size:11px;color:#4b5563;margin-top:1px;}
+.topbar-right{display:flex;align-items:center;gap:8px;}
+.user-pill{display:inline-flex;align-items:center;gap:7px;padding:5px 12px 5px 7px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:999px;font-size:11px;cursor:pointer;transition:.15s;}
+.user-pill:hover{background:rgba(255,255,255,0.08);}
+.user-avatar-sm{width:22px;height:22px;border-radius:50%;background:linear-gradient(135deg,#1e3a8a,#3b82f6);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:800;color:#fff;flex-shrink:0;}
+.logout-btn{padding:5px 10px;border-radius:7px;border:1px solid rgba(239,68,68,0.2);background:rgba(239,68,68,0.06);color:#ef4444;font-size:11px;font-weight:600;cursor:pointer;transition:.15s;}
+.logout-btn:hover{background:rgba(239,68,68,0.14);}
+.run-btn{display:inline-flex;align-items:center;gap:7px;padding:9px 22px;background:linear-gradient(135deg,#3b82f6,#2563eb);color:#fff;border:none;border-radius:9px;font-size:13px;font-weight:700;cursor:pointer;box-shadow:0 2px 12px rgba(59,130,246,0.4),0 0 0 1px rgba(59,130,246,0.2);transition:all .2s;letter-spacing:.01em;}
+.run-btn:hover:not(:disabled){transform:translateY(-1px);box-shadow:0 4px 20px rgba(59,130,246,0.5),0 0 0 1px rgba(59,130,246,0.3);}
+.run-btn:disabled{opacity:.45;cursor:not-allowed;transform:none;}
+.run-btn .dot{width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,0.6);}
+.run-btn.running .dot{animation:pulse 1s infinite;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+
+/* ── Content scroll ── */
+.content{flex:1;overflow-y:auto;padding:16px 22px 28px;display:flex;flex-direction:column;gap:14px;}
+
+/* ── Cards ── */
+.card{background:#161616;border:1px solid rgba(255,255,255,0.07);border-radius:12px;padding:18px 20px;box-shadow:0 1px 3px rgba(0,0,0,0.4),0 0 0 1px rgba(255,255,255,0.03);transition:box-shadow .2s;}
+.card:hover{box-shadow:0 2px 8px rgba(0,0,0,0.5),0 0 0 1px rgba(255,255,255,0.06);}
+.card-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:#4b5563;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;}
+
+/* ── Status row ── */
+.status-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
+.status-badge{display:inline-flex;align-items:center;gap:7px;padding:6px 14px;border-radius:999px;font-size:12px;font-weight:600;}
+.badge-idle{background:rgba(107,114,128,.12);color:#9ca3af;}
+.badge-running{background:rgba(245,158,11,.12);color:#f59e0b;}
+.badge-error{background:rgba(239,68,68,.12);color:#ef4444;}
+.bdot{width:7px;height:7px;border-radius:50%;background:currentColor;}
+.badge-running .bdot{animation:pulse 1s infinite;}
+
+/* ── Schedule grid ── */
+.sched-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;}
+.sched-item label{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:#374151;display:block;margin-bottom:4px;}
+.sched-item .val{font-size:12px;color:#e2e2e2;}
+.tag-list{display:flex;flex-wrap:wrap;gap:4px;margin-top:3px;}
+.tag{background:rgba(59,130,246,.12);color:#60a5fa;border:1px solid rgba(59,130,246,.2);font-size:10px;padding:2px 7px;border-radius:999px;font-weight:500;}
+
+/* ── Stat boxes ── */
+.stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+.stat-box{border-radius:10px;padding:14px 16px;position:relative;overflow:hidden;transition:transform .2s;}
+.stat-box:hover{transform:translateY(-2px);}
+.stat-box::before{content:'';position:absolute;inset:0;opacity:.06;background:currentColor;}
+.stat-applied{background:rgba(16,185,129,.08);color:#10b981;border-left:3px solid #10b981;}
+.stat-skipped{background:rgba(245,158,11,.08);color:#f59e0b;border-left:3px solid #f59e0b;}
+.stat-errors {background:rgba(107,114,128,.08);color:#9ca3af;border-left:3px solid #9ca3af;}
+.stat-lbl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;opacity:.75;}
+.stat-val{font-size:32px;font-weight:900;line-height:1.1;margin-top:3px;transition:all .4s;}
+.stat-val.bump{animation:countBump .3s ease;}
+@keyframes countBump{0%{transform:scale(1.25)}100%{transform:scale(1)}}
+.last-run-row{font-size:11px;color:#374151;margin-top:10px;padding-top:10px;border-top:1px solid rgba(255,255,255,.06);}
+
+/* ── Download toolbar ── */
+.dl-bar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.dl-btn{display:inline-flex;align-items:center;gap:5px;padding:5px 12px;border-radius:7px;font-size:11px;font-weight:600;cursor:pointer;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.04);color:#9ca3af;transition:all .15s;}
+.dl-btn:hover{background:rgba(255,255,255,.08);color:#e2e2e2;border-color:rgba(255,255,255,.2);}
+.dl-csv{color:#10b981;border-color:rgba(16,185,129,.2);background:rgba(16,185,129,.06);}
+.dl-csv:hover{background:rgba(16,185,129,.12);}
+.dl-xls{color:#3b82f6;border-color:rgba(59,130,246,.2);background:rgba(59,130,246,.06);}
+.dl-xls:hover{background:rgba(59,130,246,.12);}
+.dl-pdf{color:#f59e0b;border-color:rgba(245,158,11,.2);background:rgba(245,158,11,.06);}
+.dl-pdf:hover{background:rgba(245,158,11,.12);}
+
+/* ── Date groups ── */
+.date-group{margin-bottom:14px;}
+.date-group:last-child{margin-bottom:0;}
+.date-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:#374151;padding:6px 0 8px;display:flex;align-items:center;gap:8px;}
+.date-label::after{content:'';flex:1;height:1px;background:rgba(255,255,255,.06);}
+.date-count{font-size:9px;padding:1px 7px;border-radius:999px;background:rgba(59,130,246,.12);color:#60a5fa;font-weight:600;letter-spacing:.02em;}
+
+/* ── Job items ── */
+.job-list{display:flex;flex-direction:column;gap:6px;}
+.job-item{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 13px;background:rgba(255,255,255,.02);border-radius:9px;border:1px solid rgba(255,255,255,.06);transition:all .15s;}
+.job-item:hover{background:rgba(59,130,246,.06);border-color:rgba(59,130,246,.2);transform:translateX(2px);}
+.job-info{flex:1;min-width:0;}
+.job-title{font-size:13px;font-weight:600;color:#e2e2e2;text-decoration:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block;}
+.job-title:hover{color:#60a5fa;}
+.job-meta{font-size:10px;color:#4b5563;margin-top:2px;display:flex;gap:8px;align-items:center;}
+.job-company::before{content:'🏢 ';}
+.job-time::before{content:'🕐 ';}
+.score-badge{padding:3px 9px;border-radius:999px;font-size:10px;font-weight:700;white-space:nowrap;border:1px solid rgba(59,130,246,.25);background:rgba(59,130,246,.1);color:#60a5fa;}
+.empty-state{text-align:center;color:#374151;font-size:13px;padding:24px 0;}
+
+/* ── Collapsible ── */
+.coll-hdr{display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none;}
+.coll-arr{font-size:11px;color:#374151;transition:transform .25s;}
+.coll-arr.open{transform:rotate(180deg);}
+.coll-body{overflow:hidden;max-height:0;transition:max-height .35s ease;}
+.coll-body.open{max-height:2000px;}
+
+/* ── Log box ── */
+.log-box{background:#080808;border-radius:9px;padding:12px;height:190px;overflow-y:auto;font-family:'Consolas','Menlo',monospace;font-size:11px;line-height:1.7;border:1px solid rgba(255,255,255,.05);}
+.log-entry{display:flex;gap:8px;animation:fadeIn .2s ease;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(3px)}to{opacity:1;transform:none}}
+.log-ts{color:#1f2937;flex-shrink:0;}
+.log-info    .log-msg{color:#6b7280;}
+.log-success .log-msg{color:#34d399;}
+.log-warning .log-msg{color:#fbbf24;}
+.log-error   .log-msg{color:#f87171;}
+
+/* ── Smart banner ── */
+.smart-banner{background:linear-gradient(135deg,rgba(59,130,246,.1),rgba(16,185,129,.06));border:1px solid rgba(59,130,246,.2);border-radius:10px;padding:12px 16px;display:flex;align-items:center;gap:12px;font-size:12px;}
+.smart-brain{font-size:22px;flex-shrink:0;}
+.smart-text strong{color:#60a5fa;}
+.smart-count{margin-left:auto;background:rgba(59,130,246,.15);color:#60a5fa;font-size:11px;font-weight:700;padding:3px 10px;border-radius:999px;white-space:nowrap;}
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar{width:5px;height:5px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:#1f2937;border-radius:3px;}
+::-webkit-scrollbar-thumb:hover{background:#374151;}
+</style>
+</head>
+<body>
+
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <svg width="158" height="42" viewBox="0 0 158 42" xmlns="http://www.w3.org/2000/svg" style="display:block;">
+      <defs>
+        <linearGradient id="nlg" x1="0%" y1="100%" x2="100%" y2="0%">
+          <stop offset="0%" stop-color="#1d4ed8"/>
+          <stop offset="45%" stop-color="#3b82f6"/>
+          <stop offset="100%" stop-color="#93c5fd"/>
+        </linearGradient>
+        <filter id="nglow"><feGaussianBlur stdDeviation="1.8" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+      </defs>
+      <g filter="url(#nglow)" stroke="url(#nlg)" fill="none" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="5"  y1="34" x2="5"  y2="7"  stroke-width="4.5"/>
+        <line x1="5"  y1="7"  x2="22" y2="34" stroke-width="3.8"/>
+        <line x1="22" y1="7"  x2="22" y2="24" stroke-width="4.5"/>
+        <line x1="22" y1="22" x2="36" y2="5"  stroke-width="3.8"/>
+        <polyline points="28,4 36,4 36,12"       stroke-width="3.8"/>
+      </g>
+      <text x="48" y="28" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif" font-size="21" font-weight="900" letter-spacing="2.5" fill="url(#nlg)">NEXORA</text>
+    </svg>
+    <div class="tagline">Gets smarter with every application.</div>
+    <span class="version-badge">FREE v1.0</span>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-item active"><span class="nav-icon">🏠</span> Dashboard</div>
+    <div class="nav-item" onclick="window.api.navigate('settings')"><span class="nav-icon">⚙️</span> Settings</div>
+    <div class="nav-item" onclick="window.api.navigate('profile')"><span class="nav-icon">👤</span> My Profile</div>
+    <div class="nav-item" onclick="window.api.openHelp()"><span class="nav-icon">📘</span> Help <span style="margin-left:auto;font-size:10px;color:#4b5563;">F1</span></div>
+  </nav>
+  <div class="sidebar-cat">
+    <div class="cat-label">Profile Type</div>
+    <span id="catBadge" class="cat-badge cat-tech">💻 IT / Tech</span>
+  </div>
+  <div class="sidebar-footer">v1.0.0 · Bosket's Tech Ventures</div>
+</aside>
+
+<div class="main">
+  <div class="topbar">
+    <!-- Logo — click to refresh dashboard -->
+    <div class="topbar-logo" onclick="window.location.reload()" title="Nexora Dashboard">
+      <svg width="130" height="36" viewBox="0 0 200 50" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="tlg" x1="0%" y1="100%" x2="100%" y2="0%">
+            <stop offset="0%" stop-color="#1d4ed8"/><stop offset="45%" stop-color="#3b82f6"/><stop offset="100%" stop-color="#93c5fd"/>
+          </linearGradient>
+          <filter id="tglow"><feGaussianBlur stdDeviation="1.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+        </defs>
+        <g filter="url(#tglow)" stroke="url(#tlg)" fill="none" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="5" y1="40" x2="5" y2="10" stroke-width="5"/>
+          <line x1="5" y1="10" x2="22" y2="40" stroke-width="4"/>
+          <line x1="22" y1="10" x2="22" y2="26" stroke-width="5"/>
+          <line x1="22" y1="24" x2="36" y2="7" stroke-width="4"/>
+          <polyline points="28,6 36,6 36,15" stroke-width="4"/>
+        </g>
+        <text x="46" y="33" font-family="-apple-system,BlinkMacSystemFont,sans-serif" font-size="22" font-weight="900" letter-spacing="2.5" fill="url(#tlg)">NEXORA</text>
+      </svg>
+    </div>
+
+    <!-- Center: page title -->
+    <div class="topbar-center">
+      <div>
+        <h1>Dashboard</h1>
+        <div class="subtitle" id="statusMeta">Monitor your automated job application agent</div>
+      </div>
+    </div>
+
+    <!-- Right: status + run + pause + user + sign off -->
+    <div class="topbar-right">
+      <span id="statusBadge" class="status-badge badge-idle"><span class="bdot"></span> Idle</span>
+      <button id="pauseBtn" class="run-btn" style="display:none;background:linear-gradient(135deg,#f59e0b,#d97706);box-shadow:0 2px 10px rgba(245,158,11,.4);" onclick="togglePause()">
+        ⏸ Pause
+      </button>
+      <button id="forceStopBtn" class="logout-btn" style="display:none;" onclick="doForceStop()" title="Use only if the agent appears stuck">⏹ Force Stop</button>
+      <button id="runBtn" class="run-btn" onclick="triggerRun()">
+        <span class="dot"></span> Run Now
+      </button>
+      <div class="user-pill" id="userPill" onclick="window.api.navigate('profile')" title="My Profile" style="display:none;">
+        <div class="user-avatar-sm" id="userAvatarSm">K</div>
+        <span id="userPillName">User</span>
+      </div>
+      <button class="logout-btn" onclick="doLogout()" title="Switch user">⇄ Switch</button>
+      <button class="logout-btn" style="background:rgba(16,185,129,.06);color:#10b981;border-color:rgba(16,185,129,.2);" onclick="doSignOff()" title="Sign off">✓ Sign Off</button>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- Self-learning banner -->
+    <div class="smart-banner">
+      <div class="smart-brain">🧠</div>
+      <div class="smart-text">
+        <strong>Self-learning active.</strong> Nexora remembers every question it answers for <u>your profile only</u> — getting more accurate with each application.
+      </div>
+      <div class="smart-count" id="bankCount" onclick="openQABank()" style="cursor:pointer;text-decoration:underline;text-underline-offset:2px;" title="Click to see what Nexora has learned for you">0 Q&amp;A learned</div>
+    </div>
+
+    <!-- Q&A Bank modal -->
+    <div id="qaModalOverlay" onclick="if(event.target===this)closeQABank()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9998;align-items:center;justify-content:center;">
+      <div style="background:var(--card,#26263a);border:1px solid var(--border,rgba(255,255,255,.1));border-radius:12px;width:560px;max-height:75vh;display:flex;flex-direction:column;box-shadow:0 12px 40px rgba(0,0,0,.5);">
+        <div style="padding:16px 20px;border-bottom:1px solid var(--border,rgba(255,255,255,.08));display:flex;align-items:center;justify-content:space-between;">
+          <div>
+            <div style="font-size:14px;font-weight:800;">🧠 What Nexora Has Learned — Your Profile Only</div>
+            <div style="font-size:11px;color:var(--text-muted,#8b8fa8);margin-top:2px;">These answers are private to you and never shared with other profiles on this PC.</div>
+          </div>
+          <div onclick="closeQABank()" style="cursor:pointer;font-size:18px;color:#9499b3;padding:4px 8px;">✕</div>
+        </div>
+        <div id="qaModalList" style="overflow-y:auto;padding:8px 20px 18px;flex:1;"></div>
+      </div>
+    </div>
+
+    <!-- Schedule card -->
+    <div class="card">
+      <div class="card-title">Schedule &amp; Search Config</div>
+      <div class="sched-grid">
+        <div class="sched-item"><label>Next Run</label><div class="val" id="nextRun">—</div></div>
+        <div class="sched-item"><label>Target Roles</label><div class="tag-list" id="rolesList"></div></div>
+        <div class="sched-item"><label>Locations</label><div class="tag-list" id="locationsList"></div></div>
+      </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="card">
+      <div class="card-title">
+        <span>All-Time Performance</span>
+        <span id="lastRunMeta" style="font-size:10px;font-weight:400;color:#374151;letter-spacing:0;text-transform:none;"></span>
+      </div>
+      <div class="stat-grid">
+        <div class="stat-box stat-applied" onclick="scrollToSection('appliedList')" title="Click to see applied jobs" style="cursor:pointer;">
+          <div class="stat-lbl">Total Applied ↓</div><div class="stat-val" id="statApplied">0</div>
+        </div>
+        <div class="stat-box stat-skipped" onclick="scrollToSection('skippedBody')" title="Click to see skipped jobs" style="cursor:pointer;">
+          <div class="stat-lbl">Total Skipped ↓</div><div class="stat-val" id="statSkipped">0</div>
+        </div>
+        <div class="stat-box stat-errors" style="cursor:default;">
+          <div class="stat-lbl">Errors</div><div class="stat-val" id="statErrors">0</div>
+        </div>
+      </div>
+      <div class="last-run-row" id="lastRunDetail">No runs yet.</div>
+    </div>
+
+    <!-- Applied Jobs (date-grouped + downloads) -->
+    <div class="card">
+      <div class="card-title">
+        <span>All Applied Jobs</span>
+        <div class="dl-bar">
+          <button class="dl-btn dl-csv" onclick="exportReport('csv')" title="Download CSV">📥 CSV</button>
+          <button class="dl-btn dl-xls" onclick="exportReport('xls')" title="Download XLS">📊 XLS</button>
+          <button class="dl-btn dl-pdf" onclick="exportReport('pdf')" title="Download PDF">📄 PDF</button>
+        </div>
+      </div>
+      <div id="appliedList"><div class="empty-state">No run yet — click Run Now to start.</div></div>
+    </div>
+
+    <!-- Skipped Jobs -->
+    <div class="card">
+      <div class="coll-hdr" onclick="toggleSkipped()">
+        <span class="card-title" style="margin:0;">Skipped Jobs</span>
+        <span class="coll-arr" id="skippedArr">▼</span>
+      </div>
+      <div class="coll-body" id="skippedBody">
+        <div style="margin-top:14px;" id="skippedList"><div class="empty-state">—</div></div>
+      </div>
+    </div>
+
+    <!-- Found More Jobs (no Easy Apply) -->
+    <div class="card" id="manualApplyCard" style="display:none;">
+      <div class="card-title" style="display:flex;align-items:center;justify-content:space-between;">
+        <span>📌 Found These Jobs — Apply Manually</span>
+        <span id="manualBadge" style="background:rgba(245,158,11,.15);color:#f59e0b;border:1px solid rgba(245,158,11,.25);font-size:11px;font-weight:700;padding:2px 10px;border-radius:999px;">0 jobs</span>
+      </div>
+      <div style="font-size:11px;color:#4b5563;margin-bottom:12px;">These jobs matched your profile but don't have LinkedIn Easy Apply. Click the job title to open and apply manually.</div>
+      <div class="job-list" id="manualApplyList"><div class="empty-state">—</div></div>
+    </div>
+
+    <!-- Live log -->
+    <div class="card">
+      <div class="card-title">Live Log <span style="font-size:9px;font-weight:400;text-transform:none;letter-spacing:0;margin-left:6px;color:#374151;">real-time</span></div>
+      <div class="log-box" id="logBox"><span class="log-entry log-info"><span class="log-msg" style="color:#1f2937;">Waiting for activity…</span></span></div>
+    </div>
+
+  </div>
+</div>
+
+<script src="../shared/help.js"></script>
+<script>
+/* ── State ── */
+let allAppliedJobs = [];
+let agentRunning   = false;
+
+/* ── Helpers ── */
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+function setStatus(running, by, paused) {
+  agentRunning = running;
+  const badge       = document.getElementById('statusBadge');
+  const btn         = document.getElementById('runBtn');
+  const pauseBtn    = document.getElementById('pauseBtn');
+  const forceStopBtn= document.getElementById('forceStopBtn');
+  const meta        = document.getElementById('statusMeta');
+
+  if (running) {
+    badge.className = paused ? 'status-badge badge-error' : 'status-badge badge-running';
+    badge.innerHTML = `<span class="bdot"></span> ${paused ? 'Paused' : 'Running…'}`;
+    btn.disabled = true;
+    btn.classList.add('running');
+    if (pauseBtn) pauseBtn.style.display = 'inline-flex';
+    if (forceStopBtn) forceStopBtn.style.display = 'inline-flex';
+    meta.textContent = by ? 'Triggered by: ' + by : 'Agent is actively applying…';
+  } else {
+    badge.className = 'status-badge badge-idle';
+    badge.innerHTML = '<span class="bdot"></span> Idle';
+    btn.disabled = false;
+    btn.classList.remove('running');
+    if (pauseBtn) { pauseBtn.style.display = 'none'; }
+    if (forceStopBtn) forceStopBtn.style.display = 'none';
+    _paused = false;
+    meta.textContent = 'Monitor your automated job application agent';
+  }
+}
+
+function triggerRun() {
+  document.getElementById('runBtn').disabled = true;
+  // First-run tip about observing Chrome
+  const runCount = parseInt(localStorage.getItem('nexora_runCount') || '0');
+  if (runCount < 3) {
+    localStorage.setItem('nexora_runCount', String(runCount + 1));
+    showFirstRunTip(runCount);
+  }
+  window.api.runAgent().catch(() => { document.getElementById('runBtn').disabled = false; });
+}
+window._triggerRunFromTray = () => triggerRun();
+
+// ── Pause / Resume ──────────────────────────────────────────────────────────
+let _paused = false;
+async function togglePause() {
+  const btn = document.getElementById('pauseBtn');
+  if (!_paused) {
+    await window.api.pauseAgent();
+    _paused = true;
+    btn.innerHTML = '▶ Resume';
+    btn.style.background = 'linear-gradient(135deg,#10b981,#059669)';
+  } else {
+    await window.api.resumeAgent();
+    _paused = false;
+    btn.innerHTML = '⏸ Pause';
+    btn.style.background = 'linear-gradient(135deg,#f59e0b,#d97706)';
+  }
+}
+
+async function openQABank() {
+  const overlay = document.getElementById('qaModalOverlay');
+  const list = document.getElementById('qaModalList');
+  overlay.style.display = 'flex';
+  list.innerHTML = '<div class="empty-state">Loading…</div>';
+  try {
+    const bank = await window.api.getQuestionBank();
+    if (!bank || !bank.length) {
+      list.innerHTML = '<div class="empty-state" style="padding:30px 0;">Nothing learned yet — run the agent at least once.</div>';
+      return;
+    }
+    list.innerHTML = bank.slice().reverse().map(qa => `
+      <div style="padding:11px 0;border-bottom:1px solid var(--border,rgba(255,255,255,.06));">
+        <div style="font-size:12.5px;font-weight:700;color:#fff;margin-bottom:4px;">${esc(qa.question)}</div>
+        <div style="font-size:12px;color:var(--text-muted,#8b8fa8);">→ ${esc(String(qa.answer))}</div>
+        <div style="font-size:10px;color:#5a5e74;margin-top:3px;">Used ${qa.usedCount || 1}× · learned ${qa.learnedAt ? new Date(qa.learnedAt).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'}) : ''}</div>
+      </div>`).join('');
+  } catch (e) {
+    list.innerHTML = '<div class="empty-state">Could not load — try again.</div>';
+  }
+}
+
+function closeQABank() {
+  document.getElementById('qaModalOverlay').style.display = 'none';
+}
+
+async function doForceStop() {
+  if (confirm('Force-stop the agent and close the browser?\n\nUse this only if the agent appears stuck and Pause/Resume isn\'t working.')) {
+    if (window.api.forceStopAgent) await window.api.forceStopAgent();
+    else await window.api.stopAgent();
+  }
+}
+
+async function doLogout() {
+  if (confirm('Switch to a different Nexora profile?\n\nYou will return to the profile selection screen.')) {
+    await window.api.logout();
+  }
+}
+
+async function doSignOff() {
+  if (confirm('Sign off from Nexora?\n\nAll your data and profile are saved. You\'ll be taken to the login screen.\nNexora keeps running in the system tray.')) {
+    if (window.api.signOff) await window.api.signOff();
+    else await window.api.logout();
+  }
+}
+
+function scrollToSection(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  // Open collapsible if needed
+  if (id === 'skippedBody' && !el.classList.contains('open')) {
+    el.classList.add('open');
+    const arr = document.getElementById('skippedArr');
+    if (arr) arr.classList.add('open');
+  }
+  el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function showFirstRunTip(runCount) {
+  const msgs = [
+    '💡 <strong>First run tip:</strong> A small floating control bar will appear in the bottom-right of your screen — pause/resume directly from there without leaving Chrome. Or just press <b>Ctrl+Alt+P</b> anytime.',
+    '💡 <strong>Tip:</strong> If a field looks wrong in Chrome, press <b>Ctrl+Alt+P</b> (or use the floating bar) to pause, correct it manually, then press it again to resume.',
+    '💡 <strong>Self-learning active:</strong> Nexora is building a knowledge base from your applications. It improves with every run.'
+  ];
+  const banner = document.createElement('div');
+  banner.style.cssText = 'position:fixed;bottom:20px;right:20px;background:#1e3a8a;color:#bfdbfe;padding:14px 18px;border-radius:10px;box-shadow:0 4px 20px rgba(0,0,0,.5);z-index:9999;max-width:360px;font-size:12px;line-height:1.6;border:1px solid rgba(96,165,250,.3);';
+  banner.innerHTML = (msgs[runCount] || msgs[0]) + '<button onclick="this.parentNode.remove()" style="margin-left:12px;background:none;border:none;color:#93c5fd;cursor:pointer;font-size:14px;">✕</button>';
+  document.body.appendChild(banner);
+  setTimeout(() => { if (banner.parentNode) banner.remove(); }, 12000);
+}
+
+function showActiveUser(user) {
+  if (!user) return;
+  const pill   = document.getElementById('userPill');
+  const avatar = document.getElementById('userAvatarSm');
+  const name   = document.getElementById('userPillName');
+  if (pill) pill.style.display = 'inline-flex';
+  if (avatar) avatar.textContent = (user.name || '?').split(' ').map(w => w[0]).join('').toUpperCase().slice(0,2);
+  if (name)   name.textContent   = user.name.split(' ')[0];
+}
+
+/* ── Animated counter ── */
+function animateCount(el, target) {
+  const start = parseInt(el.textContent) || 0;
+  if (start === target) return;
+  const dur = 600, steps = 20, inc = (target - start) / steps;
+  let i = 0;
+  const iv = setInterval(() => {
+    i++;
+    el.textContent = Math.round(start + inc * i);
+    if (i >= steps) { el.textContent = target; el.classList.add('bump'); setTimeout(() => el.classList.remove('bump'), 300); clearInterval(iv); }
+  }, dur / steps);
+}
+
+/* ── Date grouping ── */
+function formatDateLabel(dateStr) {
+  const d = new Date(dateStr);
+  const today     = new Date(); today.setHours(0,0,0,0);
+  const yesterday = new Date(today); yesterday.setDate(yesterday.getDate()-1);
+  const dDay = new Date(d); dDay.setHours(0,0,0,0);
+  if (dDay.getTime() === today.getTime())     return 'Today';
+  if (dDay.getTime() === yesterday.getTime()) return 'Yesterday';
+  const diff = Math.round((today - dDay) / 86400000);
+  if (diff <= 7)  return `${diff} Days Ago`;
+  if (diff <= 30) return d.toLocaleDateString('en-IN',{weekday:'short',day:'numeric',month:'short'});
+  return d.toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'});
+}
+
+function groupByDate(jobs) {
+  const groups = {};
+  const order  = [];
+  jobs.forEach(j => {
+    const raw = j.runDate || j.appliedAt || new Date().toISOString();
+    const lbl = formatDateLabel(raw);
+    if (!groups[lbl]) { groups[lbl] = []; order.push(lbl); }
+    groups[lbl].push({ ...j, _raw: raw });
+  });
+  return { groups, order };
+}
+
+function renderAppliedList(jobs) {
+  const container = document.getElementById('appliedList');
+  if (!jobs || !jobs.length) {
+    container.innerHTML = '<div class="empty-state">No jobs applied yet.</div>';
+    return;
+  }
+  const { groups, order } = groupByDate(jobs);
+  container.innerHTML = order.map(lbl => `
+    <div class="date-group">
+      <div class="date-label">
+        ${esc(lbl)} <span class="date-count">${groups[lbl].length} job${groups[lbl].length>1?'s':''}</span>
+      </div>
+      <div class="job-list">
+        ${groups[lbl].map(j => `
+          <div class="job-item">
+            <div class="job-info">
+              <a class="job-title" href="#" onclick="window.api.openExternal('${(j.url||'').replace(/'/g,"\\'")}');return false;">${esc(j.title||'Untitled')}</a>
+              <div class="job-meta">
+                <span class="job-company">${esc(j.company||'')}</span>
+                <span class="job-time">${new Date(j._raw).toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'})}</span>
+              </div>
+            </div>
+            <span class="score-badge">${j.score||'—'}/10</span>
+          </div>`).join('')}
+      </div>
+    </div>`).join('');
+}
+
+function renderSkippedList(jobs) {
+  const el = document.getElementById('skippedList');
+  if (!jobs || !jobs.length) { el.innerHTML = '<div class="empty-state">None skipped.</div>'; return; }
+  el.innerHTML = '<div class="job-list">' + jobs.map(j => `
+    <div class="job-item">
+      <div class="job-info">
+        <span class="job-title">${esc(j.title||'Untitled')}</span>
+        <div class="job-meta"><span class="job-company">${esc(j.company||'')}</span></div>
+        <div style="font-size:10px;color:#6b7280;margin-top:2px;">${esc(j.reason||'')}</div>
+      </div>
+      <span class="score-badge" style="background:rgba(245,158,11,.1);color:#f59e0b;border-color:rgba(245,158,11,.2);">${j.score||'—'}/10</span>
+    </div>`).join('') + '</div>';
+}
+
+function toggleSkipped() {
+  const b = document.getElementById('skippedBody');
+  const a = document.getElementById('skippedArr');
+  b.classList.toggle('open');
+  a.classList.toggle('open');
+}
+
+/* ── Render report ── */
+function renderReport(report) {
+  if (!report) return;
+  // Refresh the Q&A learned count — the bank grows during a run
+  if (window.api && window.api.getQuestionBankCount) {
+    window.api.getQuestionBankCount().then(count => {
+      const el = document.getElementById('bankCount');
+      if (el) el.textContent = `${count || 0} Q&A learned`;
+    }).catch(() => {});
+  }
+  const cs = report.cumulativeStats || {};
+  animateCount(document.getElementById('statApplied'), cs.totalApplied  ?? (Array.isArray(report.applied)  ? report.applied.length  : 0));
+  animateCount(document.getElementById('statSkipped'), cs.totalSkipped  ?? (Array.isArray(report.skipped)  ? report.skipped.length  : 0));
+  animateCount(document.getElementById('statErrors'),  cs.totalErrors   ?? (Array.isArray(report.errors)   ? report.errors.length   : 0));
+
+  const ts = report.completedAt || report.timestamp;
+  if (ts) {
+    document.getElementById('lastRunMeta').textContent = 'Last: ' + new Date(ts).toLocaleString('en-IN');
+    const la = Array.isArray(report.applied) ? report.applied.length : 0;
+    const ls = Array.isArray(report.skipped) ? report.skipped.length : 0;
+    document.getElementById('lastRunDetail').textContent =
+      'Last run ' + new Date(ts).toLocaleString('en-IN') + ' — Applied: ' + la + ' | Skipped: ' + ls;
+  }
+
+  allAppliedJobs = (cs.allAppliedJobs || []).slice().reverse();
+  renderAppliedList(allAppliedJobs.length ? allAppliedJobs : (report.applied || []));
+  renderSkippedList(report.skipped || []);
+
+  // "Found more jobs — manual apply" grid
+  // Use accumulated list from cumulativeStats, not just the current run
+  const manualJobs = (cs.manualApplyJobs || []).concat(report.manualApply || [])
+    .filter((j, i, arr) => arr.findIndex(x => x.jobId === j.jobId) === i)  // deduplicate
+    .slice().reverse();  // newest first
+  const mCard = document.getElementById('manualApplyCard');
+  const mBadge = document.getElementById('manualBadge');
+  const mList  = document.getElementById('manualApplyList');
+  if (mCard) mCard.style.display = manualJobs.length ? 'block' : 'none';
+  if (mBadge) mBadge.textContent = `${manualJobs.length} job${manualJobs.length !== 1 ? 's' : ''}`;
+  if (mList && manualJobs.length) {
+    mList.innerHTML = '<div class="job-list">' + manualJobs.map(j => `
+      <div class="job-item">
+        <div class="job-info">
+          <a class="job-title" href="#" onclick="window.api.openExternal('${(j.url||'').replace(/'/g,"\\'")}');return false;">${esc(j.title||'Untitled')} ↗</a>
+          <div class="job-meta"><span class="job-company">${esc(j.company||'')}</span></div>
+        </div>
+        <span class="score-badge" style="background:rgba(245,158,11,.12);color:#f59e0b;border-color:rgba(245,158,11,.25);">${j.score||'—'}/10</span>
+      </div>`).join('') + '</div>';
+  }
+}
+
+function highlightReportSection() {
+  // Briefly flash the stats card to draw attention after a run completes
+  const statsCard = document.querySelector('.stat-grid');
+  if (!statsCard) return;
+  statsCard.style.transition = 'box-shadow .3s';
+  statsCard.style.boxShadow  = '0 0 0 2px #3b82f6, 0 0 20px rgba(59,130,246,.4)';
+  setTimeout(() => { statsCard.style.boxShadow = ''; }, 2500);
+  // Scroll content to top
+  const content = document.querySelector('.content');
+  if (content) content.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+/* ── Log ── */
+function appendLog(ts, msg, scroll=true) {
+  const box  = document.getElementById('logBox');
+  const type = /✅|🎉|success/i.test(msg) ? 'success' : /❌|error/i.test(msg) ? 'error' : /⚠️|warning|skip/i.test(msg) ? 'warning' : 'info';
+  const time = new Date(ts||Date.now()).toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  if (box.querySelector('.log-entry .log-msg[style]')) box.innerHTML = ''; // clear placeholder
+  const div = document.createElement('div');
+  div.className = 'log-entry log-' + type;
+  div.innerHTML = `<span class="log-ts">${time}</span><span class="log-msg">${esc(msg)}</span>`;
+  box.appendChild(div);
+  if (scroll) box.scrollTop = box.scrollHeight;
+}
+
+/* ── Export report ── */
+function exportReport(fmt) {
+  const jobs = allAppliedJobs.length ? allAppliedJobs : [];
+  if (!jobs.length) { alert('No applied jobs to export yet. Run the agent first.'); return; }
+
+  // Standard columns: Job Title, Job Link, Company, Location, Date Applied, Score
+  const COLS = ['#', 'Job Title', 'Company', 'Location', 'Date Applied', 'Time', 'Score', 'Job Link'];
+
+  const rows = jobs.map((j, i) => {
+    const d = new Date(j.runDate || j.appliedAt || '');
+    return [
+      String(i + 1),
+      j.title    || '',
+      j.company  || '',
+      j.location || j.city || '',          // location field if available
+      d.toLocaleDateString('en-IN', { day:'2-digit', month:'short', year:'numeric' }),
+      d.toLocaleTimeString('en-IN', { hour:'2-digit', minute:'2-digit' }),
+      (j.score != null ? j.score + '/10' : '—'),
+      j.url      || ''
+    ];
+  });
+
+  if (fmt === 'csv') {
+    const csv = [COLS, ...rows]
+      .map(r => r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(','))
+      .join('\r\n');
+    window.api.downloadReport({
+      format: 'csv',
+      content: '﻿' + csv,           // BOM for Excel UTF-8 compatibility
+      filename: `nexora-applied-jobs-${_today()}.csv`
+    });
+    return;
+  }
+
+  if (fmt === 'xls') {
+    const xls = `<html xmlns:o="urn:schemas-microsoft-com:office:office"
+      xmlns:x="urn:schemas-microsoft-com:office:excel">
+      <head><meta charset="UTF-8"/>
+      <style>
+        body{font-family:Calibri,Arial,sans-serif;font-size:11pt;}
+        table{border-collapse:collapse;width:100%;}
+        th{background:#1e3a8a;color:#fff;font-weight:bold;padding:8px 10px;text-align:left;border:1px solid #ccc;}
+        td{padding:7px 10px;border:1px solid #ddd;vertical-align:top;}
+        tr:nth-child(even) td{background:#f0f4ff;}
+        a{color:#1d4ed8;}
+      </style></head><body>
+      <h2 style="color:#1e3a8a;margin-bottom:6px;">Nexora — Applied Jobs Report</h2>
+      <p style="color:#666;font-size:10pt;">Generated: ${new Date().toLocaleString('en-IN')} · Total: ${jobs.length} jobs</p>
+      <table>
+        <thead><tr>${COLS.map(h => `<th>${h}</th>`).join('')}</tr></thead>
+        <tbody>${rows.map(r => `<tr>${r.map((c, ci) =>
+          ci === 7 && c ? `<td><a href="${c}">${c.substring(0,50)}…</a></td>` : `<td>${esc(c)}</td>`
+        ).join('')}</tr>`).join('')}</tbody>
+      </table></body></html>`;
+    window.api.downloadReport({
+      format: 'xls',
+      content: xls,
+      filename: `nexora-applied-jobs-${_today()}.xls`
+    });
+    return;
+  }
+
+  if (fmt === 'pdf') {
+    // Build a styled HTML document — opened in hidden window then printed to PDF
+    const pdfHtml = `<!DOCTYPE html><html><head><meta charset="UTF-8"/>
+      <style>
+        *{box-sizing:border-box;margin:0;padding:0;}
+        body{font-family:Arial,sans-serif;font-size:10pt;color:#111;padding:20px;}
+        .header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;padding-bottom:12px;border-bottom:2px solid #1e3a8a;}
+        .brand{font-size:22pt;font-weight:900;color:#1e3a8a;letter-spacing:2px;}
+        .meta{font-size:9pt;color:#555;text-align:right;}
+        table{width:100%;border-collapse:collapse;font-size:9pt;}
+        th{background:#1e3a8a;color:#fff;padding:7px 8px;text-align:left;font-weight:bold;white-space:nowrap;}
+        td{padding:6px 8px;border-bottom:1px solid #e5e7eb;vertical-align:top;}
+        tr:nth-child(even) td{background:#f8faff;}
+        .url{color:#1d4ed8;font-size:8pt;word-break:break-all;}
+        .score{font-weight:bold;color:#1e3a8a;}
+        .footer{margin-top:16px;font-size:8pt;color:#888;text-align:center;}
+      </style></head><body>
+      <div class="header">
+        <div class="brand">NEXORA</div>
+        <div class="meta">
+          <div><strong>Applied Jobs Report</strong></div>
+          <div>Generated: ${new Date().toLocaleString('en-IN')}</div>
+          <div>Total jobs: ${jobs.length}</div>
+        </div>
+      </div>
+      <table>
+        <thead><tr>
+          <th>#</th><th>Job Title</th><th>Company</th><th>Location</th>
+          <th>Date Applied</th><th>Time</th><th>Score</th><th>Job Link</th>
+        </tr></thead>
+        <tbody>${rows.map(r => `<tr>
+          <td>${r[0]}</td>
+          <td><strong>${_esc(r[1])}</strong></td>
+          <td>${_esc(r[2])}</td>
+          <td>${_esc(r[3])}</td>
+          <td>${r[4]}</td>
+          <td>${r[5]}</td>
+          <td class="score">${r[6]}</td>
+          <td class="url">${r[7] ? `<a href="${r[7]}">${r[7].substring(0,45)}…</a>` : '—'}</td>
+        </tr>`).join('')}
+        </tbody>
+      </table>
+      <div class="footer">Nexora by Bosket's Tech Ventures · Gets smarter with every application.</div>
+    </body></html>`;
+
+    window.api.downloadReport({
+      format: 'pdf',
+      htmlContent: pdfHtml,
+      filename: `nexora-applied-jobs-${_today()}.pdf`
+    });
+  }
+}
+
+function _today() {
+  return new Date().toISOString().slice(0, 10);
+}
+function _esc(s) {
+  return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+/* ── Events ── */
+if (window.api) {
+  window.api.onAgentStatus(d => setStatus(d.running, d.triggeredBy, d.paused));
+  window.api.onAgentLog(e => appendLog(e.time, e.message));
+  window.api.onAgentReport(r => renderReport(r));
+  window.api.onScheduleFired(d => appendLog(d.time, '⏰ Scheduled run triggered'));
+  if (window.api.onAgentRunComplete) {
+    window.api.onAgentRunComplete(() => {
+      // Dashboard was brought to front by main process; highlight the report section
+      highlightReportSection();
+      appendLog(new Date().toISOString(), '🎉 Run complete — report updated below!', false);
+    });
+  }
+}
+
+/* ── Init ── */
+(async () => {
+  if (!window.api) return;
+  try {
+    // Show active user in topbar
+    if (window.api.getActiveUser) {
+      const activeUser = await window.api.getActiveUser().catch(() => null);
+      if (activeUser) showActiveUser(activeUser);
+    }
+
+    const [status, report, profile, logs, lic] = await Promise.allSettled([
+      window.api.getAgentStatus(),
+      window.api.getLastReport(),
+      window.api.getProfile(),
+      window.api.getLogs(),
+      window.api.getLicense()
+    ]);
+
+    if (status.status === 'fulfilled' && status.value) {
+      if (status.value.running) setStatus(true);
+      if (status.value.nextRun) document.getElementById('nextRun').textContent = status.value.nextRun;
+    }
+
+    if (report.status === 'fulfilled' && report.value) renderReport(report.value);
+
+    if (profile.status === 'fulfilled' && profile.value) {
+      const p = profile.value;
+      // Roles & locations
+      const roles = (p.preferences && p.preferences.targetRoles) || [];
+      const locs  = (p.preferences && p.preferences.locations)   || [];
+      document.getElementById('rolesList').innerHTML     = roles.map(r=>`<span class="tag">${esc(r)}</span>`).join('') || '<span style="color:#374151;font-size:11px;">Not set</span>';
+      document.getElementById('locationsList').innerHTML = locs.map(l=>`<span class="tag">${esc(l)}</span>`).join('') || '<span style="color:#374151;font-size:11px;">Not set</span>';
+      // Category badge
+      const cat = p.profileCategory || 'tech';
+      const badge = document.getElementById('catBadge');
+      if (badge) {
+        badge.textContent = cat === 'tech' ? '💻 IT / Tech' : '🏢 Non-IT / Non-Tech';
+        badge.className   = 'cat-badge ' + (cat === 'tech' ? 'cat-tech' : 'cat-nontech');
+      }
+    }
+
+    // Q&A bank size — this was previously dead code that fetched data and
+    // never used it, leaving the banner permanently stuck at "0 Q&A learned".
+    const bankCount = document.getElementById('bankCount');
+    try {
+      const count = await window.api.getQuestionBankCount();
+      if (bankCount) bankCount.textContent = `${count || 0} Q&A learned`;
+    } catch {}
+
+    // Logs
+    if (logs.status === 'fulfilled' && Array.isArray(logs.value)) {
+      const box = document.getElementById('logBox');
+      box.innerHTML = '';
+      logs.value.forEach(e => appendLog(e.time, e.message, false));
+      box.scrollTop = box.scrollHeight;
+    }
+
+  } catch(e) { console.warn('Dashboard init error:', e); }
+})();
+</script>
+</body>
+</html>

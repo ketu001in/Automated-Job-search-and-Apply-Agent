@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Nexora — Sign In</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;overflow:hidden;}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;
+  background:#080808;color:#e2e2e2;
+  display:flex;align-items:center;justify-content:center;
+  min-height:100vh;
+}
+
+/* Subtle animated background */
+body::before{
+  content:'';position:fixed;inset:0;
+  background:radial-gradient(ellipse at 30% 20%, rgba(59,130,246,0.06) 0%, transparent 60%),
+             radial-gradient(ellipse at 70% 80%, rgba(16,185,129,0.04) 0%, transparent 60%);
+  pointer-events:none;
+}
+
+.shell{
+  width:100%;max-width:900px;padding:24px 20px;
+  display:flex;flex-direction:column;align-items:center;gap:0;
+}
+
+/* Logo area */
+.logo-area{text-align:center;margin-bottom:28px;}
+.logo-svg{filter:drop-shadow(0 0 16px rgba(59,130,246,0.5));margin-bottom:10px;}
+.tagline{font-size:12px;color:rgba(255,255,255,0.3);font-style:italic;letter-spacing:.04em;}
+
+/* Welcome overlay — shown after login */
+.welcome-overlay{
+  position:fixed;inset:0;background:#080808;z-index:9999;
+  display:none;flex-direction:column;align-items:center;justify-content:center;gap:0;
+}
+.welcome-overlay.show{display:flex;}
+.welcome-bg{
+  position:absolute;inset:0;
+  background:radial-gradient(ellipse at center, rgba(59,130,246,0.12) 0%, transparent 70%);
+}
+.welcome-logo{filter:drop-shadow(0 0 24px rgba(59,130,246,0.6));margin-bottom:16px;position:relative;}
+.welcome-line1{
+  font-size:15px;color:rgba(255,255,255,0.5);letter-spacing:.04em;
+  position:relative;opacity:0;transform:translateY(12px);
+  transition:all .6s ease;
+}
+.welcome-line2{
+  font-size:28px;font-weight:800;color:#fff;letter-spacing:-.02em;
+  position:relative;opacity:0;transform:translateY(16px);
+  transition:all .7s ease .2s;margin:6px 0 4px;
+}
+.welcome-line2 span{
+  background:linear-gradient(90deg,#60a5fa,#93c5fd);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+}
+.welcome-line3{
+  font-size:14px;color:rgba(255,255,255,0.45);
+  position:relative;opacity:0;transform:translateY(10px);
+  transition:all .6s ease .45s;
+}
+.welcome-line4{
+  margin-top:8px;font-size:16px;font-weight:700;
+  color:#60a5fa;letter-spacing:.04em;
+  position:relative;opacity:0;transform:translateY(10px);
+  transition:all .7s ease .65s;
+}
+.welcome-bar{
+  width:0;height:2px;background:linear-gradient(90deg,transparent,#3b82f6,transparent);
+  margin-top:24px;border-radius:1px;transition:width 1.4s ease .8s;position:relative;
+}
+.welcome-overlay.animate .welcome-line1,
+.welcome-overlay.animate .welcome-line2,
+.welcome-overlay.animate .welcome-line3,
+.welcome-overlay.animate .welcome-line4{opacity:1;transform:translateY(0);}
+.welcome-overlay.animate .welcome-bar{width:260px;}
+
+/* Panel tabs */
+.panel{
+  width:100%;max-width:460px;
+  background:#141414;border:1px solid rgba(255,255,255,0.08);
+  border-radius:14px;box-shadow:0 8px 32px rgba(0,0,0,0.5),0 0 0 1px rgba(255,255,255,0.04);
+  overflow:hidden;
+}
+
+/* Profile cards grid (existing users) */
+.users-section{padding:22px 22px 16px;}
+.users-section h2{font-size:13px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:.08em;margin-bottom:14px;}
+.user-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px;margin-bottom:14px;}
+.user-card{
+  background:#0d0d0d;border:1.5px solid rgba(255,255,255,0.07);border-radius:10px;
+  padding:16px 10px;text-align:center;cursor:pointer;transition:all .2s;
+}
+.user-card:hover{border-color:rgba(59,130,246,0.5);background:rgba(59,130,246,0.06);transform:translateY(-2px);box-shadow:0 4px 16px rgba(59,130,246,0.15);}
+.user-card:active{transform:translateY(0);}
+.user-avatar{
+  width:48px;height:48px;border-radius:50%;
+  background:linear-gradient(135deg,#1e3a8a,#3b82f6);
+  display:flex;align-items:center;justify-content:center;
+  font-size:18px;font-weight:800;color:#fff;margin:0 auto 8px;
+  box-shadow:0 2px 8px rgba(59,130,246,0.3);
+}
+.user-card-name{font-size:12px;font-weight:600;color:#e2e2e2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.user-card-meta{font-size:10px;color:#4b5563;margin-top:2px;}
+.user-card.add-new{border-style:dashed;border-color:rgba(255,255,255,0.1);}
+.user-card.add-new:hover{border-color:rgba(16,185,129,0.5);background:rgba(16,185,129,0.06);}
+.add-icon{font-size:24px;color:#374151;margin-bottom:6px;}
+.add-text{font-size:11px;color:#4b5563;}
+
+/* Divider */
+.divider{display:flex;align-items:center;gap:10px;padding:0 22px;margin:4px 0 12px;}
+.divider::before,.divider::after{content:'';flex:1;height:1px;background:rgba(255,255,255,0.06);}
+.divider span{font-size:10px;color:#374151;letter-spacing:.06em;text-transform:uppercase;}
+
+/* New user form */
+.form-section{padding:0 22px 22px;}
+.form-section h2{font-size:13px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:.08em;margin-bottom:14px;}
+.fg{margin-bottom:12px;}
+.fg label{display:block;font-size:11px;font-weight:600;color:#6b7280;margin-bottom:5px;letter-spacing:.04em;text-transform:uppercase;}
+.fg input{
+  width:100%;padding:9px 12px;border:1px solid rgba(255,255,255,0.1);border-radius:8px;
+  background:#111;color:#e2e2e2;font-size:13px;outline:none;transition:.15s;
+}
+.fg input:focus{border-color:#3b82f6;box-shadow:0 0 0 3px rgba(59,130,246,0.15);}
+.btn-login{
+  width:100%;padding:11px;border-radius:9px;border:none;cursor:pointer;font-size:14px;font-weight:700;
+  background:linear-gradient(135deg,#3b82f6,#2563eb);color:#fff;
+  box-shadow:0 2px 12px rgba(59,130,246,0.35);transition:all .2s;letter-spacing:.02em;
+}
+.btn-login:hover{transform:translateY(-1px);box-shadow:0 4px 20px rgba(59,130,246,0.5);}
+.btn-login:active{transform:translateY(0);}
+.err{font-size:11px;color:#ef4444;margin-top:6px;display:none;}
+.err.show{display:block;}
+
+/* Footer */
+.login-footer{text-align:center;font-size:10px;color:#1f2937;margin-top:14px;letter-spacing:.04em;}
+</style>
+</head>
+<body>
+
+<!-- Welcome animation overlay -->
+<div class="welcome-overlay" id="welcomeOverlay">
+  <div class="welcome-bg"></div>
+  <svg class="welcome-logo" width="200" height="54" viewBox="0 0 200 54" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <linearGradient id="wlg" x1="0%" y1="100%" x2="100%" y2="0%">
+        <stop offset="0%" stop-color="#1d4ed8"/><stop offset="45%" stop-color="#3b82f6"/><stop offset="100%" stop-color="#93c5fd"/>
+      </linearGradient>
+      <filter id="wglow"><feGaussianBlur stdDeviation="2.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    </defs>
+    <g filter="url(#wglow)" stroke="url(#wlg)" fill="none" stroke-linecap="round" stroke-linejoin="round">
+      <line x1="6" y1="42" x2="6" y2="10" stroke-width="5.5"/>
+      <line x1="6" y1="10" x2="26" y2="42" stroke-width="4.5"/>
+      <line x1="26" y1="10" x2="26" y2="30" stroke-width="5.5"/>
+      <line x1="26" y1="28" x2="43" y2="7" stroke-width="4.5"/>
+      <polyline points="34,6 43,6 43,16" stroke-width="4.5"/>
+    </g>
+    <text x="55" y="35" font-family="-apple-system,BlinkMacSystemFont,sans-serif" font-size="26" font-weight="900" letter-spacing="3" fill="url(#wlg)">NEXORA</text>
+  </svg>
+  <div class="welcome-line1" id="wl1">Welcome to Nexora</div>
+  <div class="welcome-line2" id="wl2"><span id="wlName">User</span></div>
+  <div class="welcome-line3" id="wl3">Wishing you all the very best.</div>
+  <div class="welcome-line4" id="wl4">Your career mission is my command.</div>
+  <div class="welcome-bar" id="wBar"></div>
+</div>
+
+<div class="shell">
+
+  <!-- Logo -->
+  <div class="logo-area">
+    <svg class="logo-svg" width="240" height="62" viewBox="0 0 240 62" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="llg" x1="0%" y1="100%" x2="100%" y2="0%">
+          <stop offset="0%" stop-color="#1d4ed8"/><stop offset="45%" stop-color="#3b82f6"/><stop offset="100%" stop-color="#93c5fd"/>
+        </linearGradient>
+        <filter id="lglow"><feGaussianBlur stdDeviation="2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+      </defs>
+      <g filter="url(#lglow)" stroke="url(#llg)" fill="none" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="6"  y1="50" x2="6"  y2="12" stroke-width="6"/>
+        <line x1="6"  y1="12" x2="28" y2="50" stroke-width="5"/>
+        <line x1="28" y1="12" x2="28" y2="33" stroke-width="6"/>
+        <line x1="28" y1="31" x2="46" y2="8"  stroke-width="5"/>
+        <polyline points="36,7 46,7 46,18" stroke-width="5"/>
+      </g>
+      <text x="60" y="42" font-family="-apple-system,BlinkMacSystemFont,sans-serif" font-size="32" font-weight="900" letter-spacing="3.5" fill="url(#llg)">NEXORA</text>
+    </svg>
+    <div class="tagline">Gets smarter with every application. · by Bosket's Tech Ventures</div>
+  </div>
+
+  <!-- Panel -->
+  <div class="panel">
+
+    <!-- Existing users -->
+    <div class="users-section" id="usersSection" style="display:none;">
+      <h2>Choose your profile</h2>
+      <div class="user-cards" id="userCardGrid"></div>
+    </div>
+
+    <div class="divider" id="divider" style="display:none;"><span>or add new profile</span></div>
+
+    <!-- New user / first time -->
+    <div class="form-section">
+      <h2 id="formTitle">Create your Nexora profile</h2>
+      <div class="fg" id="nameGroup">
+        <label>Your Name</label>
+        <input type="text" id="userName" placeholder="e.g. Ketul Shah" autocomplete="name"/>
+      </div>
+      <div class="fg">
+        <label>LinkedIn Email</label>
+        <input type="email" id="userEmail" placeholder="your@email.com" autocomplete="email"/>
+      </div>
+      <div class="err" id="formErr"></div>
+      <button class="btn-login" id="btnLogin" onclick="handleLogin()">Start Using Nexora →</button>
+    </div>
+
+  </div>
+
+  <div class="login-footer">v1.0.0 · © 2025-2026 Bosket's Tech Ventures · All rights reserved.</div>
+</div>
+
+<script src="../shared/help.js"></script>
+<script>
+let existingUsers = [];
+
+// ── Load existing users ────────────────────────────────────────────────────────
+(async () => {
+  if (!window.api) return;
+  try {
+    existingUsers = await window.api.getAllUsers();
+    if (existingUsers.length > 0) {
+      renderUserCards();
+      document.getElementById('usersSection').style.display = 'block';
+      document.getElementById('divider').style.display = 'flex';
+      document.getElementById('formTitle').textContent = 'Add another profile';
+    }
+  } catch(e) { console.warn('Could not load users:', e); }
+})();
+
+// ── Render user profile cards ──────────────────────────────────────────────────
+function renderUserCards() {
+  const grid = document.getElementById('userCardGrid');
+  grid.innerHTML = existingUsers.map(u => `
+    <div class="user-card" onclick="loginExisting('${u.id}','${escAttr(u.name)}')">
+      <div class="user-avatar">${initials(u.name)}</div>
+      <div class="user-card-name">${esc(u.name)}</div>
+      <div class="user-card-meta">${esc(shortEmail(u.email))}</div>
+    </div>
+  `).join('');
+}
+
+// ── Login with existing user ───────────────────────────────────────────────────
+async function loginExisting(userId, name) {
+  await showWelcome(name);
+  await window.api.loginUser(userId);
+  window.api.navigate('dashboard');
+}
+
+// ── Create new user / login ────────────────────────────────────────────────────
+async function handleLogin() {
+  const name  = document.getElementById('userName').value.trim();
+  const email = document.getElementById('userEmail').value.trim().toLowerCase();
+  const err   = document.getElementById('formErr');
+  err.classList.remove('show');
+
+  if (!email || !email.includes('@')) {
+    err.textContent = 'Please enter a valid LinkedIn email address.';
+    err.classList.add('show');
+    return;
+  }
+
+  try {
+    // Check if email already has a profile
+    const existing = await window.api.findUserByEmail(email);
+
+    if (existing) {
+      // Known user — load their data
+      const confirmed = confirm(
+        `We found a saved Nexora profile for:\n${existing.email}\n\nName: ${existing.name}\n\nSign in as ${existing.name}?`
+      );
+      if (!confirmed) return;
+      await showWelcome(existing.name);
+      await window.api.loginUser(existing.id);
+      window.api.navigate('dashboard');
+    } else {
+      // New user
+      if (!name) {
+        err.textContent = 'Please enter your name to create a new profile.';
+        err.classList.add('show');
+        return;
+      }
+      const user = await window.api.createUser({ name, email });
+      await showWelcome(user.name);
+      await window.api.loginUser(user.id);
+      window.api.navigate('setup');  // New users go to setup wizard
+    }
+  } catch(e) {
+    err.textContent = 'Error: ' + (e.message || e);
+    err.classList.add('show');
+  }
+}
+
+// ── Welcome animation ──────────────────────────────────────────────────────────
+function showWelcome(name) {
+  return new Promise(resolve => {
+    const ov = document.getElementById('welcomeOverlay');
+    document.getElementById('wlName').textContent = name;
+    document.getElementById('wl4').textContent = `Your career mission is my command, ${name.split(' ')[0]}.`;
+    ov.classList.add('show');
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        ov.classList.add('animate');
+        setTimeout(resolve, 2400);
+      });
+    });
+  });
+}
+
+// ── Helpers ────────────────────────────────────────────────────────────────────
+function initials(name) {
+  return (name || '?').split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
+}
+function shortEmail(email) {
+  const parts = (email || '').split('@');
+  if (parts[0].length > 10) return parts[0].slice(0, 8) + '…@' + (parts[1] || '');
+  return email;
+}
+function esc(s)     { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function escAttr(s) { return String(s||'').replace(/'/g,"\\'"); }
+
+// Enter key submits
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter') handleLogin();
+});
+</script>
+</body>
+</html>
