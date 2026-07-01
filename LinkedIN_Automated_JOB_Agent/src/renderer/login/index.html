@@ -91,11 +91,20 @@ body::before{
 .users-section h2{font-size:13px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:.08em;margin-bottom:14px;}
 .user-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px;margin-bottom:14px;}
 .user-card{
+  position:relative;
   background:#0d0d0d;border:1.5px solid rgba(255,255,255,0.07);border-radius:10px;
   padding:16px 10px;text-align:center;cursor:pointer;transition:all .2s;
 }
 .user-card:hover{border-color:rgba(59,130,246,0.5);background:rgba(59,130,246,0.06);transform:translateY(-2px);box-shadow:0 4px 16px rgba(59,130,246,0.15);}
 .user-card:active{transform:translateY(0);}
+.user-card-del{
+  position:absolute;top:5px;right:5px;width:18px;height:18px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  background:rgba(255,255,255,0.06);color:#6b7280;font-size:11px;font-weight:700;
+  opacity:0;transition:all .15s;cursor:pointer;line-height:1;
+}
+.user-card:hover .user-card-del{opacity:1;}
+.user-card-del:hover{background:rgba(239,68,68,0.25);color:#ef4444;transform:scale(1.1);}
 .user-avatar{
   width:48px;height:48px;border-radius:50%;
   background:linear-gradient(135deg,#1e3a8a,#3b82f6);
@@ -244,11 +253,42 @@ function renderUserCards() {
   const grid = document.getElementById('userCardGrid');
   grid.innerHTML = existingUsers.map(u => `
     <div class="user-card" onclick="loginExisting('${u.id}','${escAttr(u.name)}')">
+      <div class="user-card-del" title="Delete this profile" onclick="event.stopPropagation();confirmDeleteUser('${u.id}','${escAttr(u.name)}','${escAttr(u.email)}')">✕</div>
       <div class="user-avatar">${initials(u.name)}</div>
       <div class="user-card-name">${esc(u.name)}</div>
       <div class="user-card-meta">${esc(shortEmail(u.email))}</div>
     </div>
   `).join('');
+}
+
+// ── Delete a user profile — requires typing their LinkedIn email to verify ──
+async function confirmDeleteUser(userId, name, email) {
+  const typed = prompt(
+    `To delete ${name}'s profile, type their LinkedIn email to confirm:\n${email}`
+  );
+  if (typed === null) return; // cancelled
+  if (typed.trim().toLowerCase() !== email.trim().toLowerCase()) {
+    alert('Email did not match — nothing was deleted.');
+    return;
+  }
+
+  const finalConfirm = confirm(
+    `Do you really want to delete ${name}'s data?\n\nThis permanently removes their profile, saved preferences, application history, and LinkedIn session. This cannot be undone.`
+  );
+  if (!finalConfirm) return;
+
+  try {
+    await window.api.deleteUser(userId);
+    existingUsers = existingUsers.filter(u => u.id !== userId);
+    renderUserCards();
+    if (existingUsers.length === 0) {
+      document.getElementById('usersSection').style.display = 'none';
+      document.getElementById('divider').style.display = 'none';
+      document.getElementById('formTitle').textContent = 'Create your Nexora profile';
+    }
+  } catch (e) {
+    alert('Could not delete profile: ' + (e.message || e));
+  }
 }
 
 // ── Login with existing user ───────────────────────────────────────────────────

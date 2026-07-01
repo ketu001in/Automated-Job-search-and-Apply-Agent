@@ -62,13 +62,6 @@ function createWindow() {
     }
   });
 
-  // Tell the floating control bar whether the Dashboard window currently has
-  // OS focus, so it can show "Return to Chrome" when Dashboard is focused, or
-  // "Dashboard" when the user is looking at Chrome instead.
-  const floatingWindow = require('./floating-window');
-  mainWindow.on('focus', () => floatingWindow.send('app:focus-state', { dashboardFocused: true }));
-  mainWindow.on('blur',  () => floatingWindow.send('app:focus-state', { dashboardFocused: false }));
-
   return mainWindow;
 }
 

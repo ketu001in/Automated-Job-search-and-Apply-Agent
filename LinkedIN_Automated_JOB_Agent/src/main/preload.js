@@ -12,6 +12,7 @@ contextBridge.exposeInMainWorld('api', {
   getAllUsers:      ()      => ipcRenderer.invoke('app:get-all-users'),
   findUserByEmail:  (email) => ipcRenderer.invoke('app:find-user-email', email),
   createUser:       (data)  => ipcRenderer.invoke('app:create-user', data),
+  deleteUser:       (id)    => ipcRenderer.invoke('app:delete-user', id),
   loginUser:        (id)    => ipcRenderer.invoke('app:login-user', id),
   getActiveUser:    ()      => ipcRenderer.invoke('app:get-active-user'),
   logout:           ()      => ipcRenderer.invoke('app:logout'),
@@ -65,7 +66,6 @@ contextBridge.exposeInMainWorld('api', {
   onAgentReport:     (cb) => ipcRenderer.on('agent:report',      (_, d) => cb(d)),
   onScheduleFired:   (cb) => ipcRenderer.on('schedule:fired',    (_, d) => cb(d)),
   onAgentRunComplete:(cb) => ipcRenderer.on('agent:run-complete', (_, d) => cb(d)),
-  onFocusState:      (cb) => ipcRenderer.on('app:focus-state',    (_, d) => cb(d)),
 
   // ── Cleanup ───────────────────────────────────────────────────────────────
   removeAllListeners: (channel) => ipcRenderer.removeAllListeners(channel)

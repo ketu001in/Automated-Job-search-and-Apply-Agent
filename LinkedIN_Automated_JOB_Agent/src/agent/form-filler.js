@@ -462,4 +462,14 @@ function pickFromOptions(options, keywords) {
   return options.find(o => keywords.some(k => o.toLowerCase().includes(k))) || null;
 }
 
-module.exports = { getFormAnswer, setProfile, getProfile, loadQuestionBank, getSessionLog };
+// Records a value the USER manually entered/selected while the agent was
+// paused. Appended to the same session log used for auto-answered questions
+// — since it's added LATER in the run, it naturally overrides whatever the
+// form-filler guessed for that same question when the bank gets updated
+// (the bank-merge loop processes sessionLog entries in order and the last
+// write for a given question wins).
+function recordManualAnswer(question, answer) {
+  logAnswer(question, answer);
+}
+
+module.exports = { getFormAnswer, setProfile, getProfile, loadQuestionBank, getSessionLog, recordManualAnswer };

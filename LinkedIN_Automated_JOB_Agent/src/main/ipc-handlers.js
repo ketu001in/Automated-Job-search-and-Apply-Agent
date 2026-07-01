@@ -63,6 +63,15 @@ function register(mainWindow, loadPage) {
   ipcMain.handle('app:get-all-users',    ()         => users.getAllUsers());
   ipcMain.handle('app:find-user-email',  (_, email) => users.findUserByEmail(email));
   ipcMain.handle('app:create-user',      (_, data)  => users.createUser(data));
+  // Permanently deletes a user's profile, store, and browser session. The
+  // renderer is responsible for the email-verification confirmation flow —
+  // by the time this is called, the user has already confirmed twice.
+  ipcMain.handle('app:delete-user',      (_, userId) => {
+    const wasActive = users.getActiveUserId() === userId;
+    const result = users.deleteUser(userId);
+    if (wasActive) userStoreModule.clearActiveUserStore();
+    return result;
+  });
   ipcMain.handle('app:login-user',       (_, id)    => userStoreModule.activateUserSession(id));
   ipcMain.handle('app:get-active-user',  ()         => users.getActiveUser());
   ipcMain.handle('app:logout',           ()         => {

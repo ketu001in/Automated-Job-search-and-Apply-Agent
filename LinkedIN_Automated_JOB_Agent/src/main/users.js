@@ -127,6 +127,26 @@ function updateUser(userId, updates) {
   saveIndex(idx);
 }
 
+// Permanently removes a user: their index entry, profile data, and entire
+// browser session (cookies/login state). Irreversible — callers must have
+// already confirmed with the user (see login screen's email-verification flow).
+function deleteUser(userId) {
+  const idx = loadIndex();
+  const before = (idx.users || []).length;
+  idx.users = (idx.users || []).filter(u => u.id !== userId);
+  if (idx.lastUserId === userId) idx.lastUserId = null;
+  saveIndex(idx);
+
+  const dir = getUserDir(userId);
+  if (fs.existsSync(dir)) {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+
+  if (_activeUser && _activeUser.id === userId) _activeUser = null;
+
+  return { deleted: idx.users.length < before };
+}
+
 function getUserProfile(userId)           { return loadUserData(userId); }
 function saveUserProfile(userId, data)    { saveUserData(userId, data); }
 function getUserBrowserDir(userId)        { return getBrowserProfileDir(userId); }
@@ -141,7 +161,7 @@ function getActiveUserId()    { return _activeUser ? _activeUser.id : null; }
 
 module.exports = {
   getAllUsers, getLastUserId, findUserByEmail,
-  createUser, loginUser, updateUser,
+  createUser, loginUser, updateUser, deleteUser,
   getUserProfile, saveUserProfile,
   getUserBrowserDir, getBrowserProfileDir: (id) => getBrowserProfileDir(id),
   hashEmail,

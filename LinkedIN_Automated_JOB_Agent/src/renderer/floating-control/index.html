@@ -7,7 +7,7 @@
   html,body{margin:0;padding:0;background:transparent;overflow:hidden;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;}
   .bar{
     -webkit-app-region: drag;
-    width:360px;height:176px;margin:8px;
+    width:360px;height:208px;margin:8px;
     background:linear-gradient(160deg,#1c1c28fa,#14141efa);
     border:1px solid rgba(79,142,247,0.4);
     border-radius:14px;
@@ -39,6 +39,9 @@
   .btn-skip{flex:1;background:rgba(248,113,113,.14);color:#fca5a5;border:1px solid rgba(248,113,113,.28);}
   .btn-skip:hover:not(:disabled){background:rgba(248,113,113,.22);}
   button:disabled{opacity:.4;cursor:not-allowed;filter:none !important;}
+  .nav-row{display:flex;gap:7px;margin-top:8px;-webkit-app-region:no-drag;}
+  .btn-nav{flex:1;background:rgba(255,255,255,.07);color:#cdd0e0;border:1px solid rgba(255,255,255,.12);padding:7px 0;font-size:11.5px;}
+  .btn-nav:hover{background:rgba(255,255,255,.13);}
   .row2{display:flex;align-items:center;justify-content:space-between;margin-top:9px;-webkit-app-region:no-drag;}
   .hint{font-size:10.5px;color:#9499b3;line-height:1.5;}
   .hint b{color:#cfd2e3;}
@@ -62,7 +65,10 @@
     <div class="btn-row">
       <button class="btn-pause" id="actionBtn" onclick="toggle()" disabled>⏸ Pause</button>
       <button class="btn-skip" id="skipBtn" onclick="skipJob()" disabled title="Skip the job currently being applied to">⏭ Skip</button>
-      <button class="btn-bring" id="navBtn" onclick="window.api.navigate('dashboard')">📊 Dashboard</button>
+    </div>
+    <div class="nav-row">
+      <button class="btn-nav" onclick="window.api.navigate('dashboard')" title="Open the Nexora dashboard">📊 Dashboard</button>
+      <button class="btn-nav" onclick="window.api.focusChrome()" title="Bring the LinkedIn Chrome window to front">🌐 Chrome</button>
     </div>
     <div class="row2">
       <div class="hint">Hotkey: <b>Ctrl+Alt+P</b></div>
@@ -74,22 +80,12 @@
 <script>
 let paused = false;
 let running = false;
-let dashboardFocused = false;
-
-// Toggles the bottom button between "Dashboard" (when looking at Chrome) and
-// "Return to Chrome" (when the Dashboard window currently has focus) — so
-// there's always exactly one useful action, never a button that does nothing.
-function updateNavButton(){
-  const btn = document.getElementById('navBtn');
-  if (!btn) return;
-  if (dashboardFocused) {
-    btn.textContent = '🌐 Return to Chrome';
-    btn.onclick = () => window.api.focusChrome();
-  } else {
-    btn.textContent = '📊 Dashboard';
-    btn.onclick = () => window.api.navigate('dashboard');
-  }
-}
+// NOTE: Dashboard/Chrome used to be a single button that toggled its label
+// and action based on which window had OS focus. That state (pushed via
+// mainWindow focus/blur events) could get stuck wrong, making the button
+// silently do the OPPOSITE of what its label said — this looked exactly
+// like "the button doesn't work". Replaced with two always-static,
+// always-correct buttons (see HTML) — simpler and impossible to desync.
 
 async function toggle() {
   const btn = document.getElementById('actionBtn');
@@ -166,13 +162,6 @@ if (window.api) {
     const jl = document.getElementById('jobLine');
     if (jl && e.message) jl.textContent = e.message.replace(/[🚀🎉✅❌⏭️⏸️▶️📌🔍🔐👉🏁📊🔖🛑]/g, '').trim();
   });
-  if (window.api.onFocusState) {
-    window.api.onFocusState(d => {
-      dashboardFocused = !!d.dashboardFocused;
-      updateNavButton();
-    });
-  }
-
   // Proactively fetch the CURRENT status on load instead of relying solely on
   // the next broadcast event — fixes the bar getting stuck on "Idle" if it
   // missed the initial agent:status event sent right as the run started.
@@ -181,7 +170,6 @@ if (window.api) {
   }).catch(() => {});
 }
 render();
-updateNavButton();
 </script>
 </body>
 </html>

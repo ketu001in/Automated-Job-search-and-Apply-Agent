@@ -217,6 +217,18 @@ async function runLinkedInAgent(log) {
       if (seenJobIds.has(jobId)) continue;
       seenJobIds.add(jobId);
 
+      // ── Pause check BEFORE starting this job ────────────────────────────
+      // Without this, pausing only ever took effect AFTER a job finished
+      // applying (which could be a long time away if the agent was mid-scan
+      // or mid-fill) — this made Pause feel broken. Checking here too means
+      // pausing engages within seconds, not after the current job completes.
+      if (agentState.isPaused()) {
+        log('⏸️  Agent paused. Edit values in Chrome, then click Resume.', 'warning');
+        await waitForResume();
+        if (agentState.isStopped()) { log('🛑 Stopped while paused.', 'warning'); break searchLoop; }
+        log('▶️  Resumed.', 'success');
+      }
+
       try {
         const jobUrl = `${url}&currentJobId=${jobId}`;
         await page.goto(jobUrl, { waitUntil: 'domcontentloaded', timeout: 30000 });
@@ -657,6 +669,7 @@ async function handleEasyApplyModal(page, log) {
       if (agentState.isStopped()) { log('🛑 Stopped while paused — exiting form.', 'warning'); return false; }
       log('▶️  Resumed — continuing form...', 'success');
       await page.waitForTimeout(800); // brief wait so user's changes settle
+      await relearnVisibleFields(page, log).catch(() => {}); // learn from whatever the user changed
     }
 
     const bodyText = await page.evaluate(() => document.body.innerText).catch(() => '');
@@ -765,6 +778,28 @@ async function robustClick(page, handle) {
   return false;
 }
 
+// ── Frequent pause checkpoint ─────────────────────────────────────────────────
+// CRITICAL FIX: previously Pause was only checked once per modal STEP, before
+// fillVisibleFields() ran — meaning a click on Pause could sit unacknowledged
+// for the ENTIRE field-filling pass (many fields × robustClick's multi-second
+// retries adds up). That long, silent delay is what made Pause feel like it
+// "didn't work". This checkpoint is sprinkled between every field-type
+// section below so pausing engages within a couple of seconds, not after the
+// whole step finishes.
+// Returns true if the caller should STOP doing further field work right now
+// (stop requested, or skip requested — either mid-fill or while paused).
+async function pauseCheckpoint(page, log) {
+  if (agentState.isStopped() || agentState.isSkipRequested()) return true;
+  if (agentState.isPaused()) {
+    log('⏸️  Agent paused. Edit values in Chrome, then click Resume.', 'warning');
+    await waitForResume();
+    if (agentState.isStopped() || agentState.isSkipRequested()) return true;
+    log('▶️  Resumed.', 'success');
+    await relearnVisibleFields(page, log).catch(() => {}); // learn from whatever the user changed
+  }
+  return false;
+}
+
 // ── Form Field Filler ─────────────────────────────────────────────────────────
 
 async function fillVisibleFields(page, log) {
@@ -795,6 +830,8 @@ async function fillVisibleFields(page, log) {
     }
   } catch { /* skip */ }
 
+  if (await pauseCheckpoint(page, log)) return;
+
   // ── Text / number / tel inputs ────────────────────────────────────────────
   const inputs = await page.$$('.jobs-easy-apply-modal input[type="text"], .jobs-easy-apply-modal input[type="number"], .jobs-easy-apply-modal input[type="tel"]');
   for (const input of inputs) {
@@ -820,6 +857,8 @@ async function fillVisibleFields(page, log) {
     } catch { /* skip */ }
   }
 
+  if (await pauseCheckpoint(page, log)) return;
+
   // ── Textareas ─────────────────────────────────────────────────────────────
   for (const ta of await page.$$('.jobs-easy-apply-modal textarea')) {
     try {
@@ -830,6 +869,8 @@ async function fillVisibleFields(page, log) {
       if (ans) { await ta.fill(String(ans)); log(`   Filled textarea "${label}"`, 'info'); }
     } catch { /* skip */ }
   }
+
+  if (await pauseCheckpoint(page, log)) return;
 
   // ── Native <select> dropdowns ─────────────────────────────────────────────
   for (const sel of await page.$$('.jobs-easy-apply-modal select')) {
@@ -851,6 +892,8 @@ async function fillVisibleFields(page, log) {
       }
     } catch { /* skip */ }
   }
+
+  if (await pauseCheckpoint(page, log)) return;
 
   // ── Artdeco / SDUI custom dropdowns (buttons only — no native selects) ────
   const dropdownTriggers = await page.$$([
@@ -894,12 +937,15 @@ async function fillVisibleFields(page, log) {
     } catch { /* skip */ }
   }
 
+  if (await pauseCheckpoint(page, log)) return;
+
   // ── Radio buttons (fieldsets) ─────────────────────────────────────────────
   // Re-query fresh each iteration — React may re-render after each click making
   // previously collected handles stale. This ensures ALL groups are answered.
   {
     const totalFieldsets = (await page.$$('.jobs-easy-apply-modal fieldset')).length;
     for (let fi = 0; fi < totalFieldsets; fi++) {
+      if (await pauseCheckpoint(page, log)) return;  // radios are the slowest part (robustClick retries) — check every fieldset
       const freshFieldsets = await page.$$('.jobs-easy-apply-modal fieldset');
       const fieldset = freshFieldsets[fi];
       if (!fieldset) break;
@@ -961,6 +1007,87 @@ async function fillVisibleFields(page, log) {
       }
     } catch { /* skip */ }
   }
+}
+
+// ── Re-learn from manual edits made while paused ────────────────────────────
+// READ-ONLY mirror of fillVisibleFields(): instead of filling fields, it
+// captures whatever is CURRENTLY in each field and feeds it into the
+// self-learning bank. Called right after Resume — the user paused
+// specifically to correct something, so whatever they left in the field
+// is treated as the trusted, correct answer for that question going forward.
+async function relearnVisibleFields(page, log) {
+  let learned = 0;
+
+  // Text / number / tel inputs
+  for (const input of await page.$$('.jobs-easy-apply-modal input[type="text"], .jobs-easy-apply-modal input[type="number"], .jobs-easy-apply-modal input[type="tel"]')) {
+    try {
+      const val = (await input.inputValue() || '').trim();
+      if (!val) continue;
+      const label = await getLabelFor(page, input);
+      if (!label) continue;
+      formFiller.recordManualAnswer(label, val);
+      learned++;
+    } catch { /* skip */ }
+  }
+
+  // Textareas
+  for (const ta of await page.$$('.jobs-easy-apply-modal textarea')) {
+    try {
+      const val = (await ta.inputValue() || '').trim();
+      if (!val) continue;
+      const label = await getLabelFor(page, ta);
+      if (!label) continue;
+      formFiller.recordManualAnswer(label, val);
+      learned++;
+    } catch { /* skip */ }
+  }
+
+  // Native selects
+  for (const sel of await page.$$('.jobs-easy-apply-modal select')) {
+    try {
+      const selectedText = await sel.evaluate(el => (el.options[el.selectedIndex] || {}).text || '').catch(() => '');
+      if (!selectedText || /^select|^choose|^--/i.test(selectedText)) continue;
+      const label = await getLabelFor(page, sel);
+      if (!label) continue;
+      formFiller.recordManualAnswer(label, selectedText.trim());
+      learned++;
+    } catch { /* skip */ }
+  }
+
+  // Radio fieldsets — whichever option is currently checked
+  for (const fieldset of await page.$$('.jobs-easy-apply-modal fieldset')) {
+    try {
+      const checkedRadio = await fieldset.$('input[type="radio"]:checked');
+      if (!checkedRadio) continue;
+      const legend = await fieldset.$eval('legend', el => el.textContent.trim()).catch(() => '');
+      if (!legend) continue;
+      const id = await checkedRadio.getAttribute('id');
+      const label = id ? await page.$eval(`label[for="${id}"]`, el => el.textContent.trim()).catch(() => '') : '';
+      if (!label) continue;
+      formFiller.recordManualAnswer(legend, label);
+      learned++;
+    } catch { /* skip */ }
+  }
+
+  // Checkbox fieldsets — whichever boxes are currently checked
+  for (const fieldset of await page.$$('.jobs-easy-apply-modal fieldset')) {
+    try {
+      const checkedBoxes = await fieldset.$$('input[type="checkbox"]:checked');
+      if (!checkedBoxes.length) continue;
+      const legend = await fieldset.$eval('legend', el => el.textContent.trim()).catch(() => '');
+      if (!legend) continue;
+      const labels = await Promise.all(checkedBoxes.map(async cb => {
+        const id = await cb.getAttribute('id');
+        return id ? page.$eval(`label[for="${id}"]`, el => el.textContent.trim()).catch(() => '') : '';
+      }));
+      const joined = labels.filter(Boolean).join(', ');
+      if (!joined) continue;
+      formFiller.recordManualAnswer(legend, joined);
+      learned++;
+    } catch { /* skip */ }
+  }
+
+  if (learned > 0) log(`   🧠 Learned ${learned} field value(s) from your manual edits.`, 'success');
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
